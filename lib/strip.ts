@@ -10,7 +10,7 @@ export type FrameId =
   | 'galPink' | 'galBlack'
   | 'xmasRed' | 'xmasSnow'
   | 'bye2026' | 'receipt'
-  | 'mallang' | 'bugBuddy'
+  | 'mallang' | 'bugBuddy' | 'byteBuddies'
   | 'classicWhite' | 'classicBlack';
 export type FilterId = 'original' | 'mono' | 'contrast' | 'soft' | 'invert';
 
@@ -48,7 +48,7 @@ export interface StripOptions {
 export const CONCEPTS: { id: ConceptId; name: string; sub: string; frames: FrameId[]; defaultFilter: FilterId; defaultMessage: string }[] = [
   { id: 'cs', name: '컴소과', sub: 'DEV MODE', frames: ['terminal', 'ide', 'git', 'binary'], defaultFilter: 'mono', defaultMessage: '우리의 마지막 학기' },
   { id: 'gyaru', name: '일본 갸루', sub: 'ギャル', frames: ['galPink', 'galBlack'], defaultFilter: 'original', defaultMessage: '最強4人組' },
-  { id: 'cute', name: '말랑 귀염', sub: 'TINY & CUTE', frames: ['mallang', 'bugBuddy'], defaultFilter: 'soft', defaultMessage: '오늘도 말랑하게' },
+  { id: 'cute', name: '말랑 귀염', sub: 'TINY & CUTE', frames: ['byteBuddies', 'mallang', 'bugBuddy'], defaultFilter: 'soft', defaultMessage: '오늘도 말랑하게' },
   { id: 'xmas', name: '크리스마스', sub: 'XMAS', frames: ['xmasRed', 'xmasSnow'], defaultFilter: 'original', defaultMessage: '우리의 크리스마스' },
   { id: 'last', name: '2026 LAST', sub: 'BYE 2026', frames: ['bye2026', 'receipt'], defaultFilter: 'mono', defaultMessage: '안녕 2026, 고마웠어' },
   { id: 'basic', name: '기본', sub: 'CLASSIC', frames: ['classicWhite', 'classicBlack'], defaultFilter: 'original', defaultMessage: '우리의 마지막 학기' },
@@ -61,6 +61,7 @@ export const FRAMES: { id: FrameId; concept: ConceptId; name: string; desc: stri
   { id: 'binary', concept: 'cs', name: 'BINARY', desc: '0과 1로 쓴 졸업 축하' },
   { id: 'galPink', concept: 'gyaru', name: 'GAL PINK', desc: '핫핑크 프리쿠라' },
   { id: 'galBlack', concept: 'gyaru', name: 'GAL BLACK', desc: '블랙 + 핑크 반짝이' },
+  { id: 'byteBuddies', concept: 'cute', name: 'BYTE BUDDIES', desc: '컴퓨터 친구들이 다 같이 축하' },
   { id: 'mallang', concept: 'cute', name: 'MALLANG', desc: '파스텔 구름 · 별 낙서' },
   { id: 'bugBuddy', concept: 'cute', name: 'BUG BUDDY', desc: '꼬마 버그 "버그찌"가 빼꼼' },
   { id: 'xmasRed', concept: 'xmas', name: 'XMAS RED', desc: '눈 내리는 레드' },
@@ -117,6 +118,7 @@ const THEMES: Record<FrameId, Theme> = {
   binary: T({ bg: '#0a0a0a', fg: '#ffffff', ...DARK }),
   galPink: T({ bg: PINK, fg: '#ffffff', ph: '#f6dbe7', top: 140, bottom: 190, gap: 24, radius: 28, border: { color: '#ffffff', width: 12 } }),
   galBlack: T({ bg: '#0a0a0a', fg: '#ffffff', ...DARK, top: 140, bottom: 190, gap: 24, radius: 28, border: { color: PINK, width: 9 } }),
+  byteBuddies: T({ bg: '#f6b6c1', fg: '#4a2530', sub: '#8c5563', ph: '#fff3f5', top: 300, bottom: 200, gap: 24, left: 40, right: 40, radius: 26, border: { color: '#ffffff', width: 12 } }),
   mallang: T({ bg: '#fff1c9', fg: '#4a3b2a', sub: '#8a7560', ph: '#fde7ef', top: 150, bottom: 196, gap: 26, left: 40, right: 40, radius: 40, border: { color: '#ffffff', width: 12 } }),
   bugBuddy: T({ bg: '#dff2e8', fg: '#1f3a2e', sub: '#5b7a6c', ph: '#f4fbf7', top: 150, bottom: 196, gap: 26, left: 40, right: 40, radius: 22, border: { color: '#1f3a2e', width: 6 } }),
   xmasRed: T({ bg: XRED, fg: '#ffffff', ph: '#ececec', top: 144, bottom: 186, gap: 24, border: { color: '#ffffff', width: 9 } }),
@@ -343,6 +345,150 @@ function bugBuddy(ctx: CanvasRenderingContext2D, x: number, y: number, s: number
   ctx.arc(-6, -19, 3.2, 0, Math.PI * 2);
   ctx.arc(6, -19, 3.2, 0, Math.PI * 2);
   ctx.fill();
+  ctx.restore();
+}
+
+
+// ---------- BYTE BUDDIES: 오리지널 컴퓨터 친구들 ----------
+const LINE = '#3a2a2a';
+function face(ctx: CanvasRenderingContext2D, x: number, y: number, k = 1, eye = LINE) {
+  ctx.fillStyle = eye;
+  ctx.beginPath();
+  ctx.arc(x - 9 * k, y, 3.6 * k, 0, Math.PI * 2);
+  ctx.arc(x + 9 * k, y, 3.6 * k, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.strokeStyle = eye;
+  ctx.lineWidth = 2.6 * k;
+  ctx.lineCap = 'round';
+  ctx.beginPath();
+  ctx.moveTo(x - 4 * k, y + 8 * k);
+  ctx.quadraticCurveTo(x, y + 12 * k, x + 4 * k, y + 8 * k);
+  ctx.stroke();
+}
+/** 픽셀이: 네모 블록 + 픽셀 눈 */
+function pixelBuddy(ctx: CanvasRenderingContext2D, x: number, y: number) {
+  ctx.save();
+  ctx.translate(x, y);
+  ctx.fillStyle = '#ffd36b';
+  ctx.strokeStyle = LINE;
+  ctx.lineWidth = 4;
+  ctx.beginPath();
+  ctx.roundRect(-34, -38, 68, 68, 8);
+  ctx.fill();
+  ctx.stroke();
+  ctx.fillStyle = '#ffe9ad';
+  ctx.fillRect(-26, -30, 14, 14);
+  ctx.fillStyle = LINE;
+  ctx.fillRect(-14, -10, 7, 9);
+  ctx.fillRect(7, -10, 7, 9);
+  ctx.fillRect(-6, 6, 12, 4);
+  // 픽셀 다리
+  ctx.fillRect(-20, 30, 10, 10);
+  ctx.fillRect(10, 30, 10, 10);
+  ctx.restore();
+}
+/** 쿠키: 브라우저 쿠키 (초코칩 + 한 입 베어 문 자국) */
+function cookieBuddy(ctx: CanvasRenderingContext2D, x: number, y: number) {
+  ctx.save();
+  ctx.translate(x, y);
+  ctx.fillStyle = '#d9a066';
+  ctx.strokeStyle = LINE;
+  ctx.lineWidth = 4;
+  ctx.beginPath();
+  ctx.arc(0, 0, 38, 0.15 * Math.PI, 1.95 * Math.PI);
+  ctx.arc(36, -12, 10, 1.4 * Math.PI, 0.55 * Math.PI, true);
+  ctx.closePath();
+  ctx.fill();
+  ctx.stroke();
+  ctx.fillStyle = '#6b3f22';
+  [[-22, -18], [16, 20], [-24, 18], [2, -28]].forEach(([dx, dy]) => {
+    ctx.beginPath();
+    ctx.arc(dx, dy, 4.5, 0, Math.PI * 2);
+    ctx.fill();
+  });
+  face(ctx, -2, 0, 1);
+  ctx.restore();
+}
+/** 클라우디: 구름 서버 (배에 작은 서버 랙) */
+function cloudBuddy(ctx: CanvasRenderingContext2D, x: number, y: number) {
+  ctx.save();
+  ctx.translate(x, y);
+  ctx.fillStyle = '#e7f2ff';
+  ctx.strokeStyle = LINE;
+  ctx.lineWidth = 4;
+  ctx.beginPath();
+  ctx.moveTo(-44, 26);
+  ctx.arc(-26, 6, 20, Math.PI * 0.6, Math.PI * 1.45);
+  ctx.arc(0, -10, 28, Math.PI * 1.1, Math.PI * 1.9);
+  ctx.arc(28, 6, 20, Math.PI * 1.55, Math.PI * 0.4);
+  ctx.closePath();
+  ctx.fill();
+  ctx.stroke();
+  face(ctx, 0, -2, 1);
+  ctx.fillStyle = '#9fc9f5';
+  ctx.fillRect(-12, 14, 24, 5);
+  ctx.fillRect(-12, 21, 24, 5);
+  ctx.restore();
+}
+/** 플로피: 플로피 디스크 */
+function floppyBuddy(ctx: CanvasRenderingContext2D, x: number, y: number) {
+  ctx.save();
+  ctx.translate(x, y);
+  ctx.fillStyle = '#8f7cf0';
+  ctx.strokeStyle = LINE;
+  ctx.lineWidth = 4;
+  ctx.beginPath();
+  ctx.moveTo(-34, -38);
+  ctx.lineTo(24, -38);
+  ctx.lineTo(34, -28);
+  ctx.lineTo(34, 34);
+  ctx.lineTo(-34, 34);
+  ctx.closePath();
+  ctx.fill();
+  ctx.stroke();
+  ctx.fillStyle = '#d9d2ff';
+  ctx.fillRect(-18, -38, 34, 20);
+  ctx.fillStyle = '#8f7cf0';
+  ctx.fillRect(4, -34, 8, 13);
+  ctx.fillStyle = '#ffffff';
+  ctx.beginPath();
+  ctx.roundRect(-24, 2, 48, 30, 4);
+  ctx.fill();
+  face(ctx, 0, 12, 0.85);
+  ctx.restore();
+}
+/** 축하 리본 배너 */
+function ribbon(ctx: CanvasRenderingContext2D, cx: number, y: number, w: number, text: string) {
+  ctx.save();
+  ctx.fillStyle = '#e05a75';
+  ctx.strokeStyle = LINE;
+  ctx.lineWidth = 3.5;
+  // 꼬리
+  [[-1, cx - w / 2], [1, cx + w / 2]].forEach(([d, ex]) => {
+    ctx.beginPath();
+    ctx.moveTo(ex - d * 14, y + 4);
+    ctx.lineTo(ex + d * 30, y + 8);
+    ctx.lineTo(ex + d * 18, y + 26);
+    ctx.lineTo(ex + d * 32, y + 44);
+    ctx.lineTo(ex - d * 14, y + 40);
+    ctx.closePath();
+    ctx.fillStyle = '#c94761';
+    ctx.fill();
+    ctx.stroke();
+  });
+  ctx.fillStyle = '#e05a75';
+  ctx.beginPath();
+  ctx.moveTo(cx - w / 2, y);
+  ctx.quadraticCurveTo(cx, y - 18, cx + w / 2, y);
+  ctx.lineTo(cx + w / 2, y + 40);
+  ctx.quadraticCurveTo(cx, y + 22, cx - w / 2, y + 40);
+  ctx.closePath();
+  ctx.fill();
+  ctx.stroke();
+  ctx.fillStyle = '#ffffff';
+  ctx.textAlign = 'center';
+  ctx.font = `400 26px ${POP}`;
+  ctx.fillText(text, cx, y + 26);
   ctx.restore();
 }
 
@@ -601,6 +747,63 @@ function drawChrome(ctx: CanvasRenderingContext2D, o: StripOptions, t: Theme, sl
       ctx.font = `400 20px ${MONO}`;
       ctx.fillStyle = '#5a5a5a';
       ctx.fillText('THANK YOU · SEE YOU 2027', cx, fy + 256);
+      break;
+    }
+
+    case 'byteBuddies': {
+      const r = rng(77);
+      // 색종이
+      for (let i = 0; i < 90; i++) {
+        const qx = r() * STRIP_W;
+        const qy = r() * STRIP_H;
+        if (slots.some((sl) => qx > sl.x - 4 && qx < sl.x + sl.w + 4 && qy > sl.y - 4 && qy < sl.y + sl.h + 4)) continue; // 사진 위는 피하기
+        ctx.save();
+        ctx.translate(qx, qy);
+        ctx.rotate(r() * Math.PI);
+        ctx.fillStyle = ['#ffffff', '#ffd36b', '#9fc9f5', '#8f7cf0', '#7fd1ae'][i % 5];
+        ctx.globalAlpha = 0.85;
+        if (i % 3) ctx.fillRect(-5, -2.5, 10, 5);
+        else {
+          ctx.beginPath();
+          ctx.arc(0, 0, 4, 0, Math.PI * 2);
+          ctx.fill();
+        }
+        ctx.restore();
+      }
+      ctx.globalAlpha = 1;
+      // 풍선 두 개
+      [[46, 120, '#9fc9f5'], [556, 104, '#ffd36b']].forEach(([bx, by, c]) => {
+        ctx.strokeStyle = LINE;
+        ctx.lineWidth = 2;
+        ctx.beginPath();
+        ctx.moveTo(bx as number, (by as number) + 34);
+        ctx.quadraticCurveTo((bx as number) + 10, (by as number) + 70, bx as number, (by as number) + 110);
+        ctx.stroke();
+        ctx.fillStyle = c as string;
+        ctx.lineWidth = 3.5;
+        ctx.beginPath();
+        ctx.ellipse(bx as number, by as number, 26, 32, 0, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.stroke();
+      });
+      // 친구들 (뒷줄 → 앞줄)
+      cloudBuddy(ctx, 210, 92);
+      floppyBuddy(ctx, 392, 88);
+      pixelBuddy(ctx, 120, 176);
+      bugBuddy(ctx, 300, 176, 1.25, 0);
+      cookieBuddy(ctx, 482, 176);
+      ribbon(ctx, cx, 238, 400, 'CONGRATS · 졸업 축하해');
+      // 아래: 메시지 + 날짜, 구석에 버그찌
+      ctx.textAlign = 'center';
+      if (msg) {
+        fitFont(ctx, msg, 400, 36, POP, maxW);
+        outlinedText(ctx, msg, cx, fy + 84, '#4a2530', '#ffffff', 10);
+      }
+      ctx.font = `400 22px ${POP}`;
+      ctx.fillStyle = '#8c5563';
+      ctx.fillText(['byte buddies ♡', o.showDate ? o.date : ''].filter(Boolean).join(' · '), cx, fy + 130);
+      bugBuddy(ctx, 60, fy + 166, 0.7, -0.4);
+      pixelBuddy(ctx, STRIP_W - 64, fy + 146);
       break;
     }
 
