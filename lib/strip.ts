@@ -10,7 +10,7 @@ export type FrameId =
   | 'galPink' | 'galBlack'
   | 'xmasRed' | 'xmasSnow'
   | 'bye2026' | 'receipt'
-  | 'mallang' | 'bugBuddy' | 'byteBuddies'
+  | 'mallang' | 'bugBuddy' | 'byteBuddies' | 'pixelParty'
   | 'classicWhite' | 'classicBlack';
 export type FilterId = 'original' | 'mono' | 'contrast' | 'soft' | 'invert';
 
@@ -48,7 +48,7 @@ export interface StripOptions {
 export const CONCEPTS: { id: ConceptId; name: string; sub: string; frames: FrameId[]; defaultFilter: FilterId; defaultMessage: string }[] = [
   { id: 'cs', name: '컴소과', sub: 'DEV MODE', frames: ['terminal', 'ide', 'git', 'binary'], defaultFilter: 'mono', defaultMessage: '우리의 마지막 학기' },
   { id: 'gyaru', name: '일본 갸루', sub: 'ギャル', frames: ['galPink', 'galBlack'], defaultFilter: 'original', defaultMessage: '最強4人組' },
-  { id: 'cute', name: '말랑 귀염', sub: 'TINY & CUTE', frames: ['byteBuddies', 'mallang', 'bugBuddy'], defaultFilter: 'soft', defaultMessage: '오늘도 말랑하게' },
+  { id: 'cute', name: '말랑 귀염', sub: 'TINY & CUTE', frames: ['byteBuddies', 'pixelParty', 'mallang', 'bugBuddy'], defaultFilter: 'soft', defaultMessage: '오늘도 말랑하게' },
   { id: 'xmas', name: '크리스마스', sub: 'XMAS', frames: ['xmasRed', 'xmasSnow'], defaultFilter: 'original', defaultMessage: '우리의 크리스마스' },
   { id: 'last', name: '2026 LAST', sub: 'BYE 2026', frames: ['bye2026', 'receipt'], defaultFilter: 'mono', defaultMessage: '안녕 2026, 고마웠어' },
   { id: 'basic', name: '기본', sub: 'CLASSIC', frames: ['classicWhite', 'classicBlack'], defaultFilter: 'original', defaultMessage: '우리의 마지막 학기' },
@@ -62,6 +62,7 @@ export const FRAMES: { id: FrameId; concept: ConceptId; name: string; desc: stri
   { id: 'galPink', concept: 'gyaru', name: 'GAL PINK', desc: '핫핑크 프리쿠라' },
   { id: 'galBlack', concept: 'gyaru', name: 'GAL BLACK', desc: '블랙 + 핑크 반짝이' },
   { id: 'byteBuddies', concept: 'cute', name: 'BYTE BUDDIES', desc: '컴퓨터 친구들이 다 같이 축하' },
+  { id: 'pixelParty', concept: 'cute', name: 'PIXEL PARTY', desc: '8비트 게임 · LEVEL UP 졸업' },
   { id: 'mallang', concept: 'cute', name: 'MALLANG', desc: '파스텔 구름 · 별 낙서' },
   { id: 'bugBuddy', concept: 'cute', name: 'BUG BUDDY', desc: '꼬마 버그 "버그찌"가 빼꼼' },
   { id: 'xmasRed', concept: 'xmas', name: 'XMAS RED', desc: '눈 내리는 레드' },
@@ -119,6 +120,7 @@ const THEMES: Record<FrameId, Theme> = {
   galPink: T({ bg: PINK, fg: '#ffffff', ph: '#f6dbe7', top: 140, bottom: 190, gap: 24, radius: 28, border: { color: '#ffffff', width: 12 } }),
   galBlack: T({ bg: '#0a0a0a', fg: '#ffffff', ...DARK, top: 140, bottom: 190, gap: 24, radius: 28, border: { color: PINK, width: 9 } }),
   byteBuddies: T({ bg: '#f6b6c1', fg: '#4a2530', sub: '#8c5563', ph: '#fff3f5', top: 300, bottom: 200, gap: 24, left: 40, right: 40, radius: 26, border: { color: '#ffffff', width: 12 } }),
+  pixelParty: T({ bg: '#2a2550', fg: '#ffffff', sub: '#b9b3e6', ph: '#3a3470', hatch: 'rgba(255,255,255,0.08)', top: 240, bottom: 236, gap: 26, left: 44, right: 44, border: { color: '#ffffff', width: 8 } }),
   mallang: T({ bg: '#fff1c9', fg: '#4a3b2a', sub: '#8a7560', ph: '#fde7ef', top: 150, bottom: 196, gap: 26, left: 40, right: 40, radius: 40, border: { color: '#ffffff', width: 12 } }),
   bugBuddy: T({ bg: '#dff2e8', fg: '#1f3a2e', sub: '#5b7a6c', ph: '#f4fbf7', top: 150, bottom: 196, gap: 26, left: 40, right: 40, radius: 22, border: { color: '#1f3a2e', width: 6 } }),
   xmasRed: T({ bg: XRED, fg: '#ffffff', ph: '#ececec', top: 144, bottom: 186, gap: 24, border: { color: '#ffffff', width: 9 } }),
@@ -492,6 +494,42 @@ function ribbon(ctx: CanvasRenderingContext2D, cx: number, y: number, w: number,
   ctx.restore();
 }
 
+
+// ---------- PIXEL PARTY: 도트 스프라이트 (오리지널 친구들의 8비트 버전) ----------
+type Sprite = { rows: string[]; pal: Record<string, string> };
+const SP: Record<string, Sprite> = {
+  bug: { pal: { k: '#14281f', m: '#7fd1ae', w: '#ffffff' }, rows: [
+    '..k......k..', '...k....k...', '....kkkk....', '...kwkkwk...', '..kmmmkmmmk.', '.kmmkmmmkmmk',
+    '.kmmmmkmmmmk', '.kmkmmkmmkmk', '.kmmmmkmmmmk', '..kmmmkmmmk.', '...kkkkkkk..', '............'] },
+  pixel: { pal: { k: '#3a2a10', y: '#ffd36b', l: '#fff1b8' }, rows: [
+    '............', '.kkkkkkkkkk.', '.kyyyyyyyyk.', '.kyllyyyyyk.', '.kyllyyyyyk.', '.kyykyykyyk.',
+    '.kyykyykyyk.', '.kyyyyyyyyk.', '.kyyykkyyyk.', '.kkkkkkkkkk.', '..kk....kk..', '............'] },
+  cookie: { pal: { k: '#3a2214', b: '#d9a066', c: '#6b3f22' }, rows: [
+    '....kkkk....', '..kkbbbbkk..', '.kbbcbbbbk..', '.kbbbbbbk...', 'kbbkbbkbbk..', 'kbbbbbbbbbk.',
+    'kbcbbbbbcbk.', 'kbbbkkkbbbk.', '.kbbbbbbbk..', '.kbbcbbbbk..', '..kkbbbbkk..', '....kkkk....'] },
+  cloud: { pal: { k: '#1d3550', w: '#e7f2ff', s: '#9fc9f5' }, rows: [
+    '............', '....kkkk....', '...kwwwwk...', '.kkwwwwwwkk.', 'kwwwwwwwwwwk', 'kwwkwwwwkwwk',
+    'kwwwwkkwwwwk', 'kwwwwwwwwwwk', '.kkkkkkkkkk.', '...kssssk...', '...kssssk...', '....kkkk....'] },
+  floppy: { pal: { k: '#1f1640', p: '#8f7cf0', l: '#d9d2ff', w: '#ffffff' }, rows: [
+    'kkkkkkkkkk..', 'kpplllllpk..', 'kppllplppkk.', 'kpplllllpppk', 'kppppppppppk', 'kpwwwwwwwwpk',
+    'kpwkwwwwkwpk', 'kpwwwkkwwwpk', 'kpwwwwwwwwpk', 'kpwwwwwwwwpk', 'kkkkkkkkkkkk', '............'] },
+  heart: { pal: { k: '#14102e', r: '#ff5c7a', w: '#ffc2cf' }, rows: [
+    '.kk.kk.', 'kwrkrrk', 'krrrrrk', '.krrrk.', '..krk..', '...k...'] },
+  heartEmpty: { pal: { k: '#14102e', r: '#5a5490' }, rows: [
+    '.kk.kk.', 'krrkrrk', 'krrrrrk', '.krrrk.', '..krk..', '...k...'] },
+};
+function sprite(ctx: CanvasRenderingContext2D, name: string, x: number, y: number, px: number) {
+  const sp = SP[name];
+  sp.rows.forEach((row, j) => {
+    for (let i = 0; i < row.length; i++) {
+      const c = sp.pal[row[i]];
+      if (!c) continue;
+      ctx.fillStyle = c;
+      ctx.fillRect(Math.round(x + i * px), Math.round(y + j * px), px, px);
+    }
+  });
+}
+
 // ---------- frame chrome ----------
 function drawChrome(ctx: CanvasRenderingContext2D, o: StripOptions, t: Theme, slots: Rect[]) {
   const x = 36;
@@ -804,6 +842,66 @@ function drawChrome(ctx: CanvasRenderingContext2D, o: StripOptions, t: Theme, sl
       ctx.fillText(['byte buddies ♡', o.showDate ? o.date : ''].filter(Boolean).join(' · '), cx, fy + 130);
       bugBuddy(ctx, 60, fy + 166, 0.7, -0.4);
       pixelBuddy(ctx, STRIP_W - 64, fy + 146);
+      break;
+    }
+
+    case 'pixelParty': {
+      const r = rng(8);
+      // 도트 별
+      for (let i = 0; i < 80; i++) {
+        const qx = Math.round((r() * STRIP_W) / 4) * 4;
+        const qy = Math.round((r() * STRIP_H) / 4) * 4;
+        if (qy < 250 || qy > fy) continue;
+        if (slots.some((sl) => qx > sl.x - 10 && qx < sl.x + sl.w + 10 && qy > sl.y - 10 && qy < sl.y + sl.h + 10)) continue;
+        ctx.fillStyle = i % 4 ? 'rgba(255,255,255,0.55)' : '#ffd36b';
+        const sz = i % 7 ? 4 : 8;
+        ctx.fillRect(qx, qy, sz, sz);
+      }
+      // HP 게이지 · 점수
+      ctx.textAlign = 'left';
+      ctx.font = `600 20px ${MONO}`;
+      ctx.fillStyle = '#ffffff';
+      ctx.fillText('HP', 44, 46);
+      for (let i = 0; i < 5; i++) sprite(ctx, i < 4 ? 'heart' : 'heartEmpty', 84 + i * 34, 28, 4);
+      ctx.textAlign = 'right';
+      ctx.fillStyle = '#ffffff';
+      ctx.fillText('SCORE 2026', STRIP_W - 44, 46);
+      // 타이틀 (그림자 한 칸 아래로)
+      ctx.textAlign = 'center';
+      ctx.font = `600 58px ${MONO}`;
+      ctx.fillStyle = '#14102e';
+      ctx.fillText('LEVEL UP!', cx + 4, 112);
+      ctx.fillStyle = '#ffd36b';
+      ctx.fillText('LEVEL UP!', cx, 108);
+      // 파티 멤버
+      const names = ['cloud', 'pixel', 'bug', 'cookie', 'floppy'];
+      names.forEach((n, i) => sprite(ctx, n, 54 + i * 102, 134, 6));
+      ctx.font = `400 16px ${MONO}`;
+      ctx.fillStyle = '#b9b3e6';
+      ctx.fillText('— PARTY OF 5 · 졸업 달성 —', cx, 226);
+      // 대화창
+      const bx = 44, by = fy + 22, bw = STRIP_W - 88, bh = 120;
+      ctx.fillStyle = '#14102e';
+      ctx.fillRect(bx, by, bw, bh);
+      ctx.strokeStyle = '#ffffff';
+      ctx.lineWidth = 6;
+      ctx.strokeRect(bx + 3, by + 3, bw - 6, bh - 6);
+      ctx.textAlign = 'left';
+      ctx.font = `600 18px ${MONO}`;
+      ctx.fillStyle = '#ffd36b';
+      ctx.fillText('PLAYER 1', bx + 22, by + 36);
+      if (msg) {
+        fitFont(ctx, msg, 600, 30, MONO, bw - 44);
+        ctx.fillStyle = '#ffffff';
+        ctx.fillText(msg, bx + 22, by + 80);
+      }
+      ctx.fillStyle = '#ffffff';
+      ctx.fillRect(bx + bw - 34, by + bh - 30, 12, 8); // ▼ 대화 넘기기 표시
+      ctx.fillRect(bx + bw - 31, by + bh - 22, 6, 4);
+      ctx.textAlign = 'center';
+      ctx.font = `400 20px ${MONO}`;
+      ctx.fillStyle = '#b9b3e6';
+      ctx.fillText(['▶ PRESS START', o.showDate ? o.date : ''].filter(Boolean).join(' · '), cx, fy + 196);
       break;
     }
 
