@@ -7,7 +7,7 @@ export const metadata: Metadata = {
   description: '작품에 메시지를 쏘면 전시장 큰 화면으로 날아가요',
 };
 
-export const viewport: Viewport = { themeColor: '#e7dfcb', width: 'device-width', initialScale: 1, viewportFit: 'cover' };
+export const viewport: Viewport = { themeColor: '#ffffff', width: 'device-width', initialScale: 1, viewportFit: 'cover' };
 
 export default function Page() {
   return <WriteApp />;

@@ -7,7 +7,7 @@ export const metadata: Metadata = {
   description: '졸업작품전 방명록 큰 화면',
 };
 
-export const viewport: Viewport = { themeColor: '#e7dfcb' };
+export const viewport: Viewport = { themeColor: '#ffffff' };
 
 // /guestbook          실제 데이터
 // /guestbook?demo=1   가짜 메시지가 계속 날아오는 데모
