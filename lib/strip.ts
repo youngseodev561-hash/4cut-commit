@@ -1,0 +1,659 @@
+// 네컷 스트립 렌더러 — 미리보기와 최종 출력(인쇄/업로드)이 같은 코드로 그려진다.
+// 출력 해상도: 2x6 inch @300dpi = 600 x 1800 px
+
+export const STRIP_W = 600;
+export const STRIP_H = 1800;
+
+export type ConceptId = 'cs' | 'gyaru' | 'xmas' | 'last' | 'basic';
+export type FrameId =
+  | 'terminal' | 'ide' | 'git' | 'binary'
+  | 'galPink' | 'galBlack'
+  | 'xmasRed' | 'xmasSnow'
+  | 'bye2026' | 'receipt'
+  | 'classicWhite' | 'classicBlack';
+export type FilterId = 'original' | 'mono' | 'contrast' | 'soft' | 'invert';
+
+export interface Sticker {
+  id: string;
+  text: string;
+  x: number; // 스트립 좌표계 중심 x (0~600)
+  y: number; // 중심 y (0~1800)
+  rot: number; // degree
+  dark: boolean;
+  tone?: string; // 배경색 (있으면 dark 무시, 글자는 흰색)
+  scale?: number; // 도장은 크게
+  bare?: boolean; // 배경 없이 글자만 (도장)
+}
+
+export interface Stroke {
+  color: string;
+  width: number;
+  points: number[]; // [x0, y0, x1, y1, ...] 스트립 좌표
+}
+
+export interface StripOptions {
+  frame: FrameId;
+  photos: (CanvasImageSource | null)[];
+  filter: FilterId;
+  stickers: Sticker[];
+  doodles?: Stroke[];
+  message: string;
+  showDate: boolean;
+  showHash: boolean;
+  hash: string;
+  date: string;
+}
+
+export const CONCEPTS: { id: ConceptId; name: string; sub: string; frames: FrameId[]; defaultFilter: FilterId; defaultMessage: string }[] = [
+  { id: 'cs', name: '컴소과', sub: 'DEV MODE', frames: ['terminal', 'ide', 'git', 'binary'], defaultFilter: 'mono', defaultMessage: '우리의 마지막 학기' },
+  { id: 'gyaru', name: '일본 갸루', sub: 'ギャル', frames: ['galPink', 'galBlack'], defaultFilter: 'original', defaultMessage: '最強4人組' },
+  { id: 'xmas', name: '크리스마스', sub: 'XMAS', frames: ['xmasRed', 'xmasSnow'], defaultFilter: 'original', defaultMessage: '우리의 크리스마스' },
+  { id: 'last', name: '2026 LAST', sub: 'BYE 2026', frames: ['bye2026', 'receipt'], defaultFilter: 'mono', defaultMessage: '안녕 2026, 고마웠어' },
+  { id: 'basic', name: '기본', sub: 'CLASSIC', frames: ['classicWhite', 'classicBlack'], defaultFilter: 'original', defaultMessage: '우리의 마지막 학기' },
+];
+
+export const FRAMES: { id: FrameId; concept: ConceptId; name: string; desc: string }[] = [
+  { id: 'terminal', concept: 'cs', name: 'TERMINAL', desc: '검은 화면 위 흰 프롬프트' },
+  { id: 'ide', concept: 'cs', name: 'IDE', desc: '에디터 창처럼 깔끔하게' },
+  { id: 'git', concept: 'cs', name: 'GIT LOG', desc: '컷마다 하나의 커밋' },
+  { id: 'binary', concept: 'cs', name: 'BINARY', desc: '0과 1로 쓴 졸업 축하' },
+  { id: 'galPink', concept: 'gyaru', name: 'GAL PINK', desc: '핫핑크 프리쿠라' },
+  { id: 'galBlack', concept: 'gyaru', name: 'GAL BLACK', desc: '블랙 + 핑크 반짝이' },
+  { id: 'xmasRed', concept: 'xmas', name: 'XMAS RED', desc: '눈 내리는 레드' },
+  { id: 'xmasSnow', concept: 'xmas', name: 'XMAS SNOW', desc: '하얀 눈송이' },
+  { id: 'bye2026', concept: 'last', name: 'BYE 2026', desc: '2027로 넘어가기 전 마지막' },
+  { id: 'receipt', concept: 'last', name: 'RECEIPT', desc: '우리의 2026 영수증' },
+  { id: 'classicWhite', concept: 'basic', name: 'CLASSIC WHITE', desc: '심플 화이트' },
+  { id: 'classicBlack', concept: 'basic', name: 'CLASSIC BLACK', desc: '심플 블랙' },
+];
+
+export const conceptOf = (f: FrameId) => FRAMES.find((x) => x.id === f)?.concept ?? 'cs';
+
+export const FILTERS: { id: FilterId; name: string; css: string }[] = [
+  { id: 'original', name: 'ORIGINAL', css: 'none' },
+  { id: 'mono', name: 'MONO', css: 'grayscale(1)' },
+  { id: 'contrast', name: 'HIGH-CON', css: 'grayscale(1) contrast(1.7)' },
+  { id: 'soft', name: 'SOFT', css: 'brightness(1.12) contrast(0.88) saturate(1.1)' },
+  { id: 'invert', name: 'INVERT', css: 'grayscale(1) invert(1)' },
+];
+
+export const MONO = '"IBM Plex Mono", "IBM Plex Sans KR", "Mochiy Pop One", monospace';
+export const SANS = '"IBM Plex Sans KR", "Mochiy Pop One", sans-serif';
+export const POP = '"Mochiy Pop One", "IBM Plex Sans KR", sans-serif';
+export const SERIF = '"Playfair Display", "IBM Plex Sans KR", serif';
+
+const PINK = '#ff5fa2';
+const PINK_DEEP = '#c2185b';
+const XRED = '#a8101c';
+
+interface Theme {
+  bg: string;
+  fg: string;
+  sub: string;
+  ph: string; // 빈 칸 색
+  hatch: string;
+  left: number;
+  right: number;
+  top: number;
+  bottom: number;
+  gap: number;
+  radius?: number;
+  border?: { color: string; width: number };
+}
+
+const T = (t: Partial<Theme> & Pick<Theme, 'bg' | 'fg'>): Theme => ({
+  sub: '#5a5a5a', ph: '#e6e6e6', hatch: 'rgba(0,0,0,0.08)', left: 36, right: 36, top: 100, bottom: 210, gap: 22, ...t,
+});
+const DARK = { sub: '#9a9a9a', ph: '#222222', hatch: 'rgba(255,255,255,0.08)' };
+
+const THEMES: Record<FrameId, Theme> = {
+  terminal: T({ bg: '#0a0a0a', fg: '#ffffff', ...DARK }),
+  ide: T({ bg: '#ffffff', fg: '#0a0a0a' }),
+  git: T({ bg: '#ffffff', fg: '#0a0a0a', left: 100 }),
+  binary: T({ bg: '#0a0a0a', fg: '#ffffff', ...DARK }),
+  galPink: T({ bg: PINK, fg: '#ffffff', ph: '#f6dbe7', top: 140, bottom: 190, gap: 24, radius: 28, border: { color: '#ffffff', width: 12 } }),
+  galBlack: T({ bg: '#0a0a0a', fg: '#ffffff', ...DARK, top: 140, bottom: 190, gap: 24, radius: 28, border: { color: PINK, width: 9 } }),
+  xmasRed: T({ bg: XRED, fg: '#ffffff', ph: '#ececec', top: 144, bottom: 186, gap: 24, border: { color: '#ffffff', width: 9 } }),
+  xmasSnow: T({ bg: '#ffffff', fg: '#0a0a0a', top: 144, bottom: 186, gap: 24 }),
+  bye2026: T({ bg: '#0a0a0a', fg: '#ffffff', ...DARK, top: 210, bottom: 234, gap: 21 }),
+  receipt: T({ bg: '#fbfbf7', fg: '#0a0a0a', ph: '#e6e6e3', left: 42, right: 42, top: 150, bottom: 318, gap: 18 }),
+  classicWhite: T({ bg: '#ffffff', fg: '#0a0a0a', left: 30, right: 30, top: 30, bottom: 168, gap: 18 }),
+  classicBlack: T({ bg: '#0a0a0a', fg: '#ffffff', ...DARK, left: 30, right: 30, top: 30, bottom: 168, gap: 18 }),
+};
+
+export interface Rect { x: number; y: number; w: number; h: number }
+
+export function slotRects(frame: FrameId): Rect[] {
+  const t = THEMES[frame];
+  const w = STRIP_W - t.left - t.right;
+  const h = (STRIP_H - t.top - t.bottom - t.gap * 3) / 4;
+  return [0, 1, 2, 3].map((i) => ({ x: t.left, y: t.top + i * (h + t.gap), w, h }));
+}
+
+/** 촬영 화면 가이드용 기본 비율 */
+export const SLOT_ASPECT = (() => {
+  const r = slotRects('terminal')[0];
+  return r.w / r.h;
+})();
+
+// ---------- helpers ----------
+function sourceSize(src: CanvasImageSource): { w: number; h: number } {
+  if (typeof HTMLVideoElement !== 'undefined' && src instanceof HTMLVideoElement) return { w: src.videoWidth, h: src.videoHeight };
+  if (typeof HTMLImageElement !== 'undefined' && src instanceof HTMLImageElement) return { w: src.naturalWidth, h: src.naturalHeight };
+  const s = src as { width: number; height: number };
+  return { w: Number(s.width), h: Number(s.height) };
+}
+
+function drawCover(ctx: CanvasRenderingContext2D, src: CanvasImageSource, r: Rect) {
+  const { w: sw, h: sh } = sourceSize(src);
+  if (!sw || !sh) return;
+  const target = r.w / r.h;
+  let cw = sw;
+  let ch = sw / target;
+  if (ch > sh) {
+    ch = sh;
+    cw = sh * target;
+  }
+  ctx.drawImage(src, (sw - cw) / 2, (sh - ch) / 2, cw, ch, r.x, r.y, r.w, r.h);
+}
+
+function pathRect(ctx: CanvasRenderingContext2D, r: Rect, radius = 0) {
+  ctx.beginPath();
+  if (radius > 0) ctx.roundRect(r.x, r.y, r.w, r.h, radius);
+  else ctx.rect(r.x, r.y, r.w, r.h);
+}
+
+function drawPlaceholder(ctx: CanvasRenderingContext2D, r: Rect, t: Theme) {
+  ctx.fillStyle = t.ph;
+  ctx.fillRect(r.x, r.y, r.w, r.h);
+  ctx.strokeStyle = t.hatch;
+  ctx.lineWidth = 2;
+  for (let d = -r.h; d < r.w; d += 18) {
+    ctx.beginPath();
+    ctx.moveTo(r.x + d, r.y + r.h);
+    ctx.lineTo(r.x + d + r.h, r.y);
+    ctx.stroke();
+  }
+}
+
+function drawSlot(ctx: CanvasRenderingContext2D, r: Rect, src: CanvasImageSource | null, t: Theme, filterCss: string) {
+  ctx.save();
+  if (t.border) {
+    pathRect(ctx, r, t.radius);
+    ctx.fillStyle = t.border.color;
+    ctx.fill();
+    const bw = t.border.width;
+    r = { x: r.x + bw, y: r.y + bw, w: r.w - bw * 2, h: r.h - bw * 2 };
+  }
+  pathRect(ctx, r, t.radius ? Math.max(0, t.radius - (t.border?.width ?? 0)) : 0);
+  ctx.clip();
+  if (src) {
+    ctx.filter = filterCss;
+    drawCover(ctx, src, r);
+    ctx.filter = 'none';
+  } else {
+    drawPlaceholder(ctx, r, t);
+  }
+  ctx.restore();
+}
+
+function fitFont(ctx: CanvasRenderingContext2D, text: string, weight: number | string, size: number, family: string, maxW: number) {
+  let s = size;
+  ctx.font = `${weight} ${s}px ${family}`;
+  while (s > 12 && ctx.measureText(text).width > maxW) {
+    s -= 1;
+    ctx.font = `${weight} ${s}px ${family}`;
+  }
+}
+
+function toBinary(s: string) {
+  return Array.from(s).map((c) => c.charCodeAt(0).toString(2).padStart(8, '0')).join(' ');
+}
+
+function rng(seed: number) {
+  return () => {
+    seed = (seed * 9301 + 49297) % 233280;
+    return seed / 233280;
+  };
+}
+
+function star4(ctx: CanvasRenderingContext2D, x: number, y: number, r: number) {
+  ctx.beginPath();
+  ctx.moveTo(x, y - r);
+  ctx.quadraticCurveTo(x, y, x + r, y);
+  ctx.quadraticCurveTo(x, y, x, y + r);
+  ctx.quadraticCurveTo(x, y, x - r, y);
+  ctx.quadraticCurveTo(x, y, x, y - r);
+  ctx.fill();
+}
+
+function heart(ctx: CanvasRenderingContext2D, x: number, y: number, s: number, fill: boolean) {
+  ctx.beginPath();
+  ctx.moveTo(x, y + s * 0.35);
+  ctx.bezierCurveTo(x, y, x - s * 0.5, y - s * 0.05, x - s * 0.5, y + s * 0.3);
+  ctx.bezierCurveTo(x - s * 0.5, y + s * 0.6, x - s * 0.1, y + s * 0.75, x, y + s);
+  ctx.bezierCurveTo(x + s * 0.1, y + s * 0.75, x + s * 0.5, y + s * 0.6, x + s * 0.5, y + s * 0.3);
+  ctx.bezierCurveTo(x + s * 0.5, y - s * 0.05, x, y, x, y + s * 0.35);
+  if (fill) ctx.fill();
+  else ctx.stroke();
+}
+
+function snowflake(ctx: CanvasRenderingContext2D, x: number, y: number, r: number) {
+  ctx.beginPath();
+  for (let i = 0; i < 6; i++) {
+    const a = (i * Math.PI) / 3;
+    const ex = x + Math.cos(a) * r;
+    const ey = y + Math.sin(a) * r;
+    ctx.moveTo(x, y);
+    ctx.lineTo(ex, ey);
+    const bx = x + Math.cos(a) * r * 0.6;
+    const by = y + Math.sin(a) * r * 0.6;
+    ctx.moveTo(bx, by);
+    ctx.lineTo(bx + Math.cos(a + 0.6) * r * 0.3, by + Math.sin(a + 0.6) * r * 0.3);
+    ctx.moveTo(bx, by);
+    ctx.lineTo(bx + Math.cos(a - 0.6) * r * 0.3, by + Math.sin(a - 0.6) * r * 0.3);
+  }
+  ctx.stroke();
+}
+
+function outlinedText(ctx: CanvasRenderingContext2D, text: string, x: number, y: number, fill: string, stroke: string, lw: number) {
+  ctx.lineJoin = 'round';
+  ctx.lineWidth = lw;
+  ctx.strokeStyle = stroke;
+  ctx.strokeText(text, x, y);
+  ctx.fillStyle = fill;
+  ctx.fillText(text, x, y);
+}
+
+function daysTo2027() {
+  return Math.max(0, Math.ceil((new Date(2027, 0, 1).getTime() - Date.now()) / 86400000));
+}
+
+// ---------- frame chrome ----------
+function drawChrome(ctx: CanvasRenderingContext2D, o: StripOptions, t: Theme, slots: Rect[]) {
+  const x = 36;
+  const cx = STRIP_W / 2;
+  const maxW = STRIP_W - 72;
+  const fy = STRIP_H - t.bottom;
+  const msg = o.message.trim();
+  const meta = [o.showHash ? o.hash : '', o.showDate ? o.date : ''].filter(Boolean).join(' · ');
+  ctx.textBaseline = 'alphabetic';
+  ctx.textAlign = 'left';
+  ctx.fillStyle = t.fg;
+  ctx.strokeStyle = t.fg;
+
+  const devFooter = (tail: string, tailSize = 21) => {
+    if (msg) {
+      fitFont(ctx, `// ${msg}`, 600, 30, MONO, maxW);
+      ctx.fillStyle = t.fg;
+      ctx.fillText(`// ${msg}`, x, fy + 66);
+    }
+    ctx.fillStyle = t.sub;
+    ctx.font = `400 21px ${MONO}`;
+    if (meta) ctx.fillText(meta, x, fy + 108);
+    ctx.font = `400 ${tailSize}px ${MONO}`;
+    ctx.fillText(tail, x, fy + 160);
+  };
+
+  switch (o.frame) {
+    case 'terminal':
+      ctx.font = `500 30px ${MONO}`;
+      ctx.fillText('$ ./graduate.sh', x, 66);
+      devFooter('exit 0 · done_');
+      break;
+
+    case 'ide':
+      ctx.lineWidth = 6;
+      ctx.strokeRect(3, 3, STRIP_W - 6, STRIP_H - 6);
+      ctx.lineWidth = 3;
+      [52, 84].forEach((c) => {
+        ctx.beginPath();
+        ctx.arc(c, 56, 10, 0, Math.PI * 2);
+        ctx.stroke();
+      });
+      ctx.beginPath();
+      ctx.arc(116, 56, 11.5, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.font = `500 26px ${MONO}`;
+      ctx.fillText('memory.tsx', 148, 65);
+      devFooter('Ln 4, Col 4 · no bugs, just us');
+      break;
+
+    case 'git': {
+      ctx.lineWidth = 6;
+      ctx.strokeRect(3, 3, STRIP_W - 6, STRIP_H - 6);
+      ctx.font = `500 26px ${MONO}`;
+      ctx.fillText('git log --graph', x, 66);
+      const gx = 60;
+      ctx.lineWidth = 5;
+      ctx.beginPath();
+      ctx.moveTo(gx, slots[0].y + slots[0].h / 2);
+      ctx.lineTo(gx, slots[3].y + slots[3].h / 2 + 120);
+      ctx.stroke();
+      slots.forEach((s, i) => {
+        ctx.beginPath();
+        ctx.arc(gx, s.y + s.h / 2, 15, 0, Math.PI * 2);
+        if (i % 2 === 0) ctx.fill();
+        else {
+          ctx.fillStyle = t.bg;
+          ctx.fill();
+          ctx.fillStyle = t.fg;
+          ctx.stroke();
+        }
+      });
+      devFooter('HEAD → main · 4CUT.COMMIT');
+      break;
+    }
+
+    case 'binary':
+      ctx.font = `500 22px ${MONO}`;
+      ctx.fillText(toBinary('GRAD'), x, 64);
+      devFooter(toBinary('4CUT'), 18);
+      break;
+
+    case 'galPink':
+    case 'galBlack': {
+      const pink = o.frame === 'galPink';
+      const r = rng(pink ? 11 : 23);
+      ctx.textAlign = 'center';
+      ctx.font = `400 ${pink ? 66 : 56}px ${POP}`;
+      if (pink) outlinedText(ctx, 'ずっ友♡', cx, 98, '#ffffff', PINK_DEEP, 12);
+      else {
+        ctx.fillStyle = PINK;
+        ctx.fillText('ギャル最強☆', cx, 94);
+      }
+      // 반짝이 · 하트
+      const spots: [number, number, number][] = [[42, 40, 22], [560, 64, 15], [580, 640, 26], [20, 1000, 18], [575, 1240, 16], [40, 1700, 20], [560, 1740, 24], [300, 1790, 10]];
+      spots.forEach(([sx, sy, sr], i) => {
+        ctx.fillStyle = i % 3 === 1 && !pink ? PINK : '#ffffff';
+        star4(ctx, sx, sy, sr);
+      });
+      for (let i = 0; i < 18; i++) {
+        ctx.fillStyle = pink ? 'rgba(255,255,255,0.9)' : i % 2 ? PINK : '#ffffff';
+        const edge = r() > 0.5;
+        star4(ctx, edge ? 6 + r() * 26 : STRIP_W - 6 - r() * 26, 120 + r() * 1480, 4 + r() * 6);
+      }
+      ctx.lineWidth = 4;
+      ctx.strokeStyle = pink ? '#ffffff' : PINK;
+      heart(ctx, 548, 18, 32, false);
+      heart(ctx, 30, 1260, 26, false);
+      // footer
+      if (msg) {
+        fitFont(ctx, msg, 400, 40, POP, maxW);
+        if (pink) outlinedText(ctx, msg, cx, fy + 90, '#ffffff', PINK_DEEP, 8);
+        else {
+          ctx.fillStyle = '#ffffff';
+          ctx.fillText(msg, cx, fy + 90);
+        }
+      }
+      ctx.font = `400 26px ${POP}`;
+      ctx.fillStyle = pink ? '#ffffff' : PINK;
+      const line = [pink ? '盛れた♡' : 'LOVE♡4EVER', o.showDate ? o.date : ''].filter(Boolean).join(' ');
+      ctx.fillText(line, cx, fy + 140);
+      break;
+    }
+
+    case 'xmasRed': {
+      const r = rng(5);
+      for (let i = 0; i < 70; i++) {
+        ctx.fillStyle = `rgba(255,255,255,${0.3 + r() * 0.6})`;
+        ctx.beginPath();
+        ctx.arc(r() * STRIP_W, r() * STRIP_H, 2 + r() * 5, 0, Math.PI * 2);
+        ctx.fill();
+      }
+      ctx.textAlign = 'center';
+      ctx.fillStyle = '#ffffff';
+      ctx.font = `italic 600 62px ${SERIF}`;
+      ctx.fillText('Merry Christmas', cx, 100);
+      ctx.textAlign = 'left';
+      if (msg) {
+        fitFont(ctx, msg, 700, 34, SANS, 400);
+        ctx.fillText(msg, x, fy + 88);
+      }
+      ctx.font = `400 22px ${MONO}`;
+      ctx.fillStyle = 'rgba(255,255,255,0.85)';
+      ctx.fillText([o.showDate ? o.date : '', 'with love'].filter(Boolean).join(' · '), x, fy + 128);
+      // tree
+      const tx = 520;
+      const ty = fy + 40;
+      ctx.fillStyle = '#ffffff';
+      ctx.beginPath();
+      ctx.moveTo(tx, ty + 10);
+      ctx.lineTo(tx - 30, ty + 52);
+      ctx.lineTo(tx + 30, ty + 52);
+      ctx.fill();
+      ctx.beginPath();
+      ctx.moveTo(tx, ty + 34);
+      ctx.lineTo(tx - 42, ty + 92);
+      ctx.lineTo(tx + 42, ty + 92);
+      ctx.fill();
+      ctx.fillRect(tx - 8, ty + 92, 16, 16);
+      ctx.fillStyle = '#f2c94c';
+      star4(ctx, tx, ty + 4, 14);
+      break;
+    }
+
+    case 'xmasSnow': {
+      ctx.lineWidth = 6;
+      ctx.strokeStyle = '#0a0a0a';
+      ctx.strokeRect(3, 3, STRIP_W - 6, STRIP_H - 6);
+      ctx.lineCap = 'round';
+      const flakes: [number, number, number, string][] = [[44, 44, 24, '#0a0a0a'], [560, 60, 16, '#8a8a8a'], [560, 1740, 28, '#0a0a0a'], [40, 1760, 14, '#8a8a8a'], [576, 900, 12, '#8a8a8a'], [22, 640, 12, '#8a8a8a']];
+      flakes.forEach(([fx, fyy, fr, c]) => {
+        ctx.strokeStyle = c;
+        ctx.lineWidth = 3;
+        snowflake(ctx, fx, fyy, fr);
+      });
+      ctx.textAlign = 'center';
+      ctx.fillStyle = '#0a0a0a';
+      ctx.font = `italic 600 56px ${SERIF}`;
+      ctx.fillText('Happy Holidays', cx, 92);
+      ctx.fillStyle = '#1f6b3a';
+      ctx.fillRect(cx - 90, 114, 180, 6);
+      ctx.fillStyle = XRED;
+      ctx.fillRect(36, fy + 36, STRIP_W - 72, 9);
+      ctx.fillStyle = '#0a0a0a';
+      if (msg) {
+        fitFont(ctx, msg, 700, 34, SANS, maxW);
+        ctx.fillText(msg, cx, fy + 100);
+      }
+      ctx.font = `400 22px ${MONO}`;
+      ctx.fillStyle = '#5a5a5a';
+      ctx.fillText(['WINTER 2026', o.showDate ? o.date : ''].filter(Boolean).join(' · '), cx, fy + 140);
+      break;
+    }
+
+    case 'bye2026':
+      ctx.fillStyle = t.sub;
+      ctx.font = `500 24px ${MONO}`;
+      ctx.fillText('T H E   L A S T   O N E', x, 62);
+      ctx.fillStyle = '#ffffff';
+      ctx.font = `700 132px ${SANS}`;
+      ctx.fillText('2026', x - 6, 186);
+      ctx.font = `700 92px ${SANS}`;
+      ctx.lineWidth = 3;
+      ctx.strokeStyle = '#ffffff';
+      ctx.strokeText('→ 2027', x - 2, fy + 104);
+      if (msg) {
+        fitFont(ctx, msg, 700, 32, SANS, maxW);
+        ctx.fillStyle = '#ffffff';
+        ctx.fillText(msg, x, fy + 156);
+      }
+      ctx.fillStyle = t.sub;
+      ctx.font = `400 22px ${MONO}`;
+      ctx.fillText([`D-${daysTo2027()}`, o.showDate ? o.date : ''].filter(Boolean).join(' · '), x, fy + 200);
+      break;
+
+    case 'receipt': {
+      ctx.textAlign = 'center';
+      ctx.font = `600 40px ${MONO}`;
+      ctx.fillText('2026 RECEIPT', cx, 76);
+      ctx.font = `400 21px ${MONO}`;
+      ctx.fillStyle = '#5a5a5a';
+      ctx.fillText(`No. ${o.hash} · 컴소과 졸업전`, cx, 112);
+      ctx.strokeStyle = '#0a0a0a';
+      ctx.lineWidth = 3;
+      ctx.setLineDash([10, 8]);
+      [134, fy + 6].forEach((ly) => {
+        ctx.beginPath();
+        ctx.moveTo(42, ly);
+        ctx.lineTo(STRIP_W - 42, ly);
+        ctx.stroke();
+      });
+      ctx.setLineDash([]);
+      ctx.fillStyle = '#0a0a0a';
+      const row = (l: string, rr: string, y: number, bold = false) => {
+        ctx.font = `${bold ? 600 : 400} ${bold ? 27 : 24}px ${MONO}`;
+        ctx.textAlign = 'left';
+        ctx.fillText(l, 48, y);
+        ctx.textAlign = 'right';
+        fitFont(ctx, rr, bold ? 600 : 400, bold ? 27 : 24, MONO, 320);
+        ctx.fillText(rr, STRIP_W - 48, y);
+      };
+      row('웃음', '∞', fy + 46);
+      row('밤샘 코딩', '365', fy + 82);
+      row('TOTAL', msg || '졸업 1건', fy + 122, true);
+      const r = rng(3);
+      let bx = 120;
+      while (bx < STRIP_W - 120) {
+        const w = r() > 0.6 ? 6 : 3;
+        ctx.fillRect(bx, fy + 148, w, 66);
+        bx += w + 4;
+      }
+      ctx.textAlign = 'center';
+      ctx.font = `400 20px ${MONO}`;
+      ctx.fillStyle = '#5a5a5a';
+      ctx.fillText('THANK YOU · SEE YOU 2027', cx, fy + 256);
+      break;
+    }
+
+    case 'classicWhite':
+    case 'classicBlack':
+      if (o.frame === 'classicWhite') {
+        ctx.strokeStyle = '#d0d0d0';
+        ctx.lineWidth = 3;
+        ctx.strokeRect(1.5, 1.5, STRIP_W - 3, STRIP_H - 3);
+      }
+      ctx.textAlign = 'center';
+      ctx.fillStyle = t.fg;
+      if (msg) {
+        fitFont(ctx, msg, 700, 36, SANS, maxW);
+        ctx.fillText(msg, cx, fy + 80);
+      }
+      ctx.font = `400 24px ${MONO}`;
+      ctx.fillStyle = t.sub;
+      if (o.showDate) ctx.fillText(o.date, cx, fy + 122);
+      break;
+  }
+  ctx.textAlign = 'left';
+}
+
+// ---------- doodles & stickers ----------
+function drawDoodles(ctx: CanvasRenderingContext2D, strokes: Stroke[]) {
+  ctx.save();
+  ctx.lineCap = 'round';
+  ctx.lineJoin = 'round';
+  for (const s of strokes) {
+    if (s.points.length < 2) continue;
+    const trace = () => {
+      ctx.beginPath();
+      ctx.moveTo(s.points[0], s.points[1]);
+      if (s.points.length === 2) ctx.lineTo(s.points[0] + 0.1, s.points[1]);
+      for (let i = 2; i < s.points.length; i += 2) ctx.lineTo(s.points[i], s.points[i + 1]);
+    };
+    // 프리쿠라 펜 느낌: 바깥 테두리 + 안쪽 색
+    trace();
+    ctx.strokeStyle = s.color === '#0a0a0a' ? '#ffffff' : 'rgba(10,10,10,0.35)';
+    ctx.lineWidth = s.width + 6;
+    ctx.stroke();
+    trace();
+    ctx.strokeStyle = s.color;
+    ctx.lineWidth = s.width;
+    ctx.stroke();
+  }
+  ctx.restore();
+}
+
+function stickerFont(s: Sticker) {
+  const size = Math.round(32 * (s.scale ?? 1));
+  return `${s.bare ? 400 : 600} ${size}px ${s.bare || s.tone ? POP : MONO}`;
+}
+
+export function stickerSize(ctx: CanvasRenderingContext2D, s: Sticker | string) {
+  const st: Sticker = typeof s === 'string' ? { id: '', text: s, x: 0, y: 0, rot: 0, dark: true } : s;
+  ctx.font = stickerFont(st);
+  const k = st.scale ?? 1;
+  return { w: Math.ceil(ctx.measureText(st.text).width) + (st.bare ? 12 : 32) * k, h: Math.round((st.bare ? 48 : 58) * k) };
+}
+
+function drawSticker(ctx: CanvasRenderingContext2D, s: Sticker) {
+  const { w, h } = stickerSize(ctx, s);
+  ctx.save();
+  ctx.translate(s.x, s.y);
+  ctx.rotate((s.rot * Math.PI) / 180);
+  ctx.font = stickerFont(s);
+  ctx.textAlign = 'center';
+  ctx.textBaseline = 'middle';
+  if (s.bare) {
+    // 도장: 흰 글자 + 진한 테두리
+    outlinedText(ctx, s.text, 0, 2, s.tone ?? '#ffffff', s.tone ? '#ffffff' : '#0a0a0a', 8 * (s.scale ?? 1));
+    ctx.restore();
+    return;
+  }
+  const bg = s.tone ?? (s.dark ? '#0a0a0a' : '#ffffff');
+  ctx.fillStyle = bg;
+  ctx.fillRect(-w / 2, -h / 2, w, h);
+  if (!s.dark || s.tone) {
+    ctx.lineWidth = 4;
+    ctx.strokeStyle = s.tone ? '#ffffff' : '#0a0a0a';
+    ctx.strokeRect(-w / 2 + 2, -h / 2 + 2, w - 4, h - 4);
+  }
+  ctx.fillStyle = s.tone || s.dark ? '#ffffff' : '#0a0a0a';
+  ctx.fillText(s.text, 0, 2);
+  ctx.restore();
+}
+
+export function renderStrip(canvas: HTMLCanvasElement, o: StripOptions) {
+  canvas.width = STRIP_W;
+  canvas.height = STRIP_H;
+  const ctx = canvas.getContext('2d');
+  if (!ctx) return;
+  const t = THEMES[o.frame];
+  const slots = slotRects(o.frame);
+  const filterCss = FILTERS.find((f) => f.id === o.filter)?.css ?? 'none';
+
+  ctx.fillStyle = t.bg;
+  ctx.fillRect(0, 0, STRIP_W, STRIP_H);
+  slots.forEach((r, i) => drawSlot(ctx, r, o.photos[i] ?? null, t, filterCss));
+  drawChrome(ctx, o, t, slots);
+  if (o.doodles?.length) drawDoodles(ctx, o.doodles);
+  o.stickers.forEach((s) => drawSticker(ctx, s));
+}
+
+/** 캔버스에 쓰는 폰트(한글·일본어 포함)가 로드될 때까지 기다린다 */
+export async function ensureFonts(sample = '') {
+  if (typeof document === 'undefined' || !document.fonts) return;
+  const text = `$./graduate.sh 0123456789 ${sample}`;
+  const jp = `ずっ友♡ギャル最強☆盛れたLOVE4EVER ${sample}`;
+  await Promise.all([
+    document.fonts.load(`400 21px "IBM Plex Mono"`, text),
+    document.fonts.load(`500 30px "IBM Plex Mono"`, text),
+    document.fonts.load(`600 32px "IBM Plex Mono"`, text),
+    document.fonts.load(`700 34px "IBM Plex Sans KR"`, sample || '가나다'),
+    document.fonts.load(`400 40px "Mochiy Pop One"`, jp),
+    document.fonts.load(`italic 600 60px "Playfair Display"`, 'Merry Christmas Happy Holidays'),
+  ]).catch(() => undefined);
+}
+
+export function randomHash() {
+  return Array.from(crypto.getRandomValues(new Uint8Array(4)))
+    .map((b) => b.toString(16).padStart(2, '0'))
+    .join('')
+    .slice(0, 7);
+}
+
+export function todayLabel() {
+  const d = new Date();
+  const p = (n: number) => String(n).padStart(2, '0');
+  return `${d.getFullYear()}.${p(d.getMonth() + 1)}.${p(d.getDate())}`;
+}

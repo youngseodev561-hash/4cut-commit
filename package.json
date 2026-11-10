@@ -1,0 +1,32 @@
+{
+  "name": "4cut-commit",
+  "private": true,
+  "version": "1.0.0",
+  "type": "module",
+  "description": "컴퓨터소프트웨어과 졸업작품전 인생네컷 키오스크 웹앱",
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start -H 0.0.0.0",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@fontsource/ibm-plex-mono": "^5.3.0",
+    "@fontsource/ibm-plex-sans-kr": "^5.3.0",
+    "@fontsource/mochiy-pop-one": "^5.3.0",
+    "@fontsource/playfair-display": "^5.3.0",
+    "@vercel/blob": "^2.9.0",
+    "next": "^16.4.5",
+    "qrcode": "^1.5.4",
+    "react": "^19.3.1",
+    "react-dom": "^19.3.1",
+    "server-only": "^0.0.1"
+  },
+  "devDependencies": {
+    "@types/node": "^26.6.6",
+    "@types/qrcode": "^1.5.6",
+    "@types/react": "^19.3.0",
+    "@types/react-dom": "^19.3.0",
+    "typescript": "^5.9.3"
+  }
+}
