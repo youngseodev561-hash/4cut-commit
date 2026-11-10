@@ -18,7 +18,7 @@ const demo = (frame: StripOptions['frame']): StripOptions => ({
 });
 
 export default function StartScreen({ onStart }: { onStart: () => void }) {
-  const a = useMemo(() => demo('terminal'), []);
+  const a = useMemo(() => demo('snake'), []);
   const b = useMemo(() => demo('galPink'), []);
   return (
     <div className="kiosk" onClick={() => { audio(); onStart(); }}>
@@ -32,6 +32,14 @@ export default function StartScreen({ onStart }: { onStart: () => void }) {
       />
       <main className="start-main">
         <section style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: 28 }}>
+          <div className="start-badge">
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img src="/brand/logo-black.png" alt="컴퓨터소프트웨어과 로고" />
+            <div>
+              <b>컴퓨터소프트웨어과</b>
+              <span>GRADUATION EXHIBITION 2026</span>
+            </div>
+          </div>
           <div className="mono muted" style={{ fontSize: 22 }}>
             $ git commit -m{' '}
             <span className="cursor" style={{ display: 'inline-block', width: 12, height: 24, background: 'var(--ink)', verticalAlign: -4 }} />

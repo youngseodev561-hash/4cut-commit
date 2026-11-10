@@ -28,7 +28,7 @@ export interface Session {
 
 export function newSession(): Session {
   return {
-    frame: 'terminal',
+    frame: 'snake',
     timer: 3,
     shots: [],
     picked: [],

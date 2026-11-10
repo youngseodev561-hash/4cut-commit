@@ -133,7 +133,11 @@ export default function GalleryWall({ demo = false }: { demo?: boolean }) {
             <span key={i} aria-hidden style={{ '--i': i } as React.CSSProperties}>{ch === ' ' ? ' ' : ch}</span>
           ))}
         </h1>
-        <span className="gl-small is-right">컴퓨터소프트웨어과 졸업작품전</span>
+        <span className="gl-small is-right">
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img src="/brand/logo-black.png" alt="" className="gl-logo" />
+          컴퓨터소프트웨어과 졸업작품전
+        </span>
       </header>
 
       {items.length ? (

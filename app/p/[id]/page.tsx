@@ -12,7 +12,10 @@ export default async function PhotoPage({ params }: { params: Promise<{ id: stri
   return (
     <div className="m-page">
       <header className="m-head">
-        <span className="brand">4CUT.COMMIT</span>
+        <span className="brand">
+          <img src="/brand/logo-black.png" alt="" width={26} height={27} style={{ verticalAlign: -7, marginRight: 8 }} />
+          4CUT.COMMIT
+        </span>
         <span className="muted">{id.slice(0, 7)}</span>
       </header>
       <main className="m-main">

@@ -204,6 +204,21 @@ a { color: inherit; }
 .stamp-grid button.on { background: var(--ink); color: var(--paper); }
 .chip.tone { color: #fff; border-color: var(--ink); font-family: 'Mochiy Pop One', var(--sans); font-weight: 400; }
 
+/* ---------- 과 로고 ---------- */
+.brand { display: inline-flex; align-items: center; gap: 10px; }
+.brand-logo { width: 28px; height: 29px; display: inline-block; background: currentColor; -webkit-mask: url(/brand/logo-black.png) center / contain no-repeat; mask: url(/brand/logo-black.png) center / contain no-repeat; }
+.start-badge { display: flex; align-items: center; gap: 18px; }
+.start-badge img { width: 92px; height: auto; display: block; }
+.start-badge div { display: flex; flex-direction: column; gap: 4px; }
+.start-badge b { font-size: 22px; letter-spacing: -0.02em; }
+.start-badge span { font-family: var(--mono); font-size: 13px; color: var(--gray-3); letter-spacing: 0.08em; }
+.logo-chip { display: inline-flex; align-items: center; justify-content: center; }
+.logo-chip img { height: 40px; width: auto; display: block; }
+.logo-chip.w { background: var(--ink); padding: 3px 6px; }
+.stamp-grid button.on .logo-chip:not(.w) img { filter: invert(1); }
+.chip.logo { padding: 0 10px; }
+.chip.logo .logo-chip img { height: 38px; }
+
 /* ---------- mobile (≤ 760px): 세로 스크롤 레이아웃 ---------- */
 @media (max-width: 760px) {
   .kiosk { height: auto; min-height: 100dvh; overflow: visible; }
@@ -222,6 +237,10 @@ a { color: inherit; }
 
   /* start */
   .start-meta { display: none !important; }
+  .start-badge img { width: 64px; }
+  .start-badge b { font-size: 18px; }
+  .start-badge span { font-size: 11px; }
+  .brand-logo { width: 22px; height: 23px; }
   .start-main { flex-direction: column-reverse; align-items: stretch; padding: 16px; gap: 8px; }
   .start-title { font-size: clamp(44px, 13vw, 64px); }
   .start-lead { font-size: 17px !important; }

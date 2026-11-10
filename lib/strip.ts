@@ -6,7 +6,7 @@ export const STRIP_H = 1800;
 
 export type ConceptId = 'cs' | 'gyaru' | 'cute' | 'xmas' | 'last' | 'basic';
 export type FrameId =
-  | 'terminal' | 'ide' | 'git' | 'binary'
+  | 'snake' | 'terminal' | 'ide' | 'git' | 'binary'
   | 'galPink' | 'galBlack'
   | 'xmasRed' | 'xmasSnow'
   | 'bye2026' | 'receipt'
@@ -46,7 +46,7 @@ export interface StripOptions {
 }
 
 export const CONCEPTS: { id: ConceptId; name: string; sub: string; frames: FrameId[]; defaultFilter: FilterId; defaultMessage: string }[] = [
-  { id: 'cs', name: '컴소과', sub: 'DEV MODE', frames: ['terminal', 'ide', 'git', 'binary'], defaultFilter: 'mono', defaultMessage: '우리의 마지막 학기' },
+  { id: 'cs', name: '컴소과', sub: 'DEV MODE', frames: ['snake', 'terminal', 'ide', 'git', 'binary'], defaultFilter: 'mono', defaultMessage: '우리의 마지막 학기' },
   { id: 'gyaru', name: '일본 갸루', sub: 'ギャル', frames: ['galPink', 'galBlack'], defaultFilter: 'original', defaultMessage: '最強4人組' },
   { id: 'cute', name: '말랑 귀염', sub: 'TINY & CUTE', frames: ['byteBuddies', 'pixelParty', 'mallang', 'bugBuddy'], defaultFilter: 'soft', defaultMessage: '오늘도 말랑하게' },
   { id: 'xmas', name: '크리스마스', sub: 'XMAS', frames: ['xmasRed', 'xmasSnow'], defaultFilter: 'original', defaultMessage: '우리의 크리스마스' },
@@ -55,6 +55,7 @@ export const CONCEPTS: { id: ConceptId; name: string; sub: string; frames: Frame
 ];
 
 export const FRAMES: { id: FrameId; concept: ConceptId; name: string; desc: string }[] = [
+  { id: 'snake', concept: 'cs', name: 'OUR LOGO', desc: '우리 과 로고가 크게 들어간 프레임' },
   { id: 'terminal', concept: 'cs', name: 'TERMINAL', desc: '검은 화면 위 흰 프롬프트' },
   { id: 'ide', concept: 'cs', name: 'IDE', desc: '에디터 창처럼 깔끔하게' },
   { id: 'git', concept: 'cs', name: 'GIT LOG', desc: '컷마다 하나의 커밋' },
@@ -113,6 +114,7 @@ const T = (t: Partial<Theme> & Pick<Theme, 'bg' | 'fg'>): Theme => ({
 const DARK = { sub: '#9a9a9a', ph: '#222222', hatch: 'rgba(255,255,255,0.08)' };
 
 const THEMES: Record<FrameId, Theme> = {
+  snake: T({ bg: '#ffffff', fg: '#0a0a0a', top: 296, bottom: 214, gap: 20 }),
   terminal: T({ bg: '#0a0a0a', fg: '#ffffff', ...DARK }),
   ide: T({ bg: '#ffffff', fg: '#0a0a0a' }),
   git: T({ bg: '#ffffff', fg: '#0a0a0a', left: 100 }),
@@ -530,6 +532,35 @@ function sprite(ctx: CanvasRenderingContext2D, name: string, x: number, y: numbe
   });
 }
 
+// ---------- 과 로고 ----------
+export const LOGO_STAMP = '@logo';
+export const LOGO_STAMP_WHITE = '@logo-w';
+export const isLogoStamp = (t: string) => t === LOGO_STAMP || t === LOGO_STAMP_WHITE;
+const LOGO_RATIO = 1029 / 1000; // 높이 / 너비
+const logos: { black?: HTMLImageElement; white?: HTMLImageElement } = {};
+let logoLoad: Promise<void> | null = null;
+function loadImg(src: string) {
+  return new Promise<HTMLImageElement | undefined>((res) => {
+    const i = new Image();
+    i.onload = () => res(i);
+    i.onerror = () => res(undefined);
+    i.src = src;
+  });
+}
+export function ensureLogos() {
+  if (typeof window === 'undefined') return Promise.resolve();
+  logoLoad ??= Promise.all([loadImg('/brand/logo-black.png'), loadImg('/brand/logo-white.png')]).then(([b, w]) => {
+    logos.black = b;
+    logos.white = w;
+  });
+  return logoLoad;
+}
+/** (x, y) 왼쪽 위 기준, 높이 h 로 로고를 그린다. 아직 로드 전이면 건너뜀 */
+function drawLogo(ctx: CanvasRenderingContext2D, white: boolean, x: number, y: number, h: number) {
+  const img = white ? logos.white : logos.black;
+  if (img) ctx.drawImage(img, x, y, h / LOGO_RATIO, h);
+}
+
 // ---------- frame chrome ----------
 function drawChrome(ctx: CanvasRenderingContext2D, o: StripOptions, t: Theme, slots: Rect[]) {
   const x = 36;
@@ -557,9 +588,29 @@ function drawChrome(ctx: CanvasRenderingContext2D, o: StripOptions, t: Theme, sl
   };
 
   switch (o.frame) {
+    case 'snake': {
+      ctx.lineWidth = 6;
+      ctx.strokeRect(3, 3, STRIP_W - 6, STRIP_H - 6);
+      drawLogo(ctx, false, 30, 32, 228);
+      const tx = 276;
+      ctx.font = `400 18px ${MONO}`;
+      ctx.fillStyle = t.sub;
+      ctx.fillText('DEPT. OF', tx, 88);
+      ctx.fillStyle = t.fg;
+      ctx.font = `600 40px ${MONO}`;
+      ctx.fillText('COMPUTER', tx, 136);
+      ctx.fillText('SOFTWARE', tx, 182);
+      ctx.fillRect(tx, 206, STRIP_W - tx - 36, 4);
+      ctx.font = `500 21px ${MONO}`;
+      ctx.fillText('졸업작품전 · 2026', tx, 244);
+      devFooter('import { 우리 } from "컴소과"');
+      break;
+    }
+
     case 'terminal':
       ctx.font = `500 30px ${MONO}`;
       ctx.fillText('$ ./graduate.sh', x, 66);
+      drawLogo(ctx, true, STRIP_W - 36 - 56, 20, 60);
       devFooter('exit 0 · done_');
       break;
 
@@ -577,6 +628,7 @@ function drawChrome(ctx: CanvasRenderingContext2D, o: StripOptions, t: Theme, sl
       ctx.fill();
       ctx.font = `500 26px ${MONO}`;
       ctx.fillText('memory.tsx', 148, 65);
+      drawLogo(ctx, false, STRIP_W - 36 - 56, 20, 60);
       devFooter('Ln 4, Col 4 · no bugs, just us');
       break;
 
@@ -585,6 +637,7 @@ function drawChrome(ctx: CanvasRenderingContext2D, o: StripOptions, t: Theme, sl
       ctx.strokeRect(3, 3, STRIP_W - 6, STRIP_H - 6);
       ctx.font = `500 26px ${MONO}`;
       ctx.fillText('git log --graph', x, 66);
+      drawLogo(ctx, false, STRIP_W - 36 - 56, 20, 60);
       const gx = 60;
       ctx.lineWidth = 5;
       ctx.beginPath();
@@ -609,6 +662,7 @@ function drawChrome(ctx: CanvasRenderingContext2D, o: StripOptions, t: Theme, sl
     case 'binary':
       ctx.font = `500 22px ${MONO}`;
       ctx.fillText(toBinary('GRAD'), x, 64);
+      drawLogo(ctx, true, STRIP_W - 30 - 48, 26, 50);
       devFooter(toBinary('4CUT'), 18);
       break;
 
@@ -731,6 +785,7 @@ function drawChrome(ctx: CanvasRenderingContext2D, o: StripOptions, t: Theme, sl
       ctx.fillStyle = '#ffffff';
       ctx.font = `700 132px ${SANS}`;
       ctx.fillText('2026', x - 6, 186);
+      drawLogo(ctx, true, STRIP_W - 36 - 126, 54, 130);
       ctx.font = `700 92px ${SANS}`;
       ctx.lineWidth = 3;
       ctx.strokeStyle = '#ffffff';
@@ -984,6 +1039,7 @@ function drawChrome(ctx: CanvasRenderingContext2D, o: StripOptions, t: Theme, sl
       ctx.font = `400 24px ${MONO}`;
       ctx.fillStyle = t.sub;
       if (o.showDate) ctx.fillText(o.date, cx, fy + 122);
+      drawLogo(ctx, o.frame === 'classicBlack', 30, fy + 94, 48);
       break;
   }
   ctx.textAlign = 'left';
@@ -1022,6 +1078,10 @@ function stickerFont(s: Sticker) {
 
 export function stickerSize(ctx: CanvasRenderingContext2D, s: Sticker | string) {
   const st: Sticker = typeof s === 'string' ? { id: '', text: s, x: 0, y: 0, rot: 0, dark: true } : s;
+  if (isLogoStamp(st.text)) {
+    const h = Math.round(120 * (st.scale ?? 1));
+    return { w: Math.round(h / LOGO_RATIO), h };
+  }
   ctx.font = stickerFont(st);
   const k = st.scale ?? 1;
   return { w: Math.ceil(ctx.measureText(st.text).width) + (st.bare ? 12 : 32) * k, h: Math.round((st.bare ? 48 : 58) * k) };
@@ -1032,6 +1092,16 @@ function drawSticker(ctx: CanvasRenderingContext2D, s: Sticker) {
   ctx.save();
   ctx.translate(s.x, s.y);
   ctx.rotate((s.rot * Math.PI) / 180);
+  if (isLogoStamp(s.text)) {
+    const white = s.text === LOGO_STAMP_WHITE;
+    if (white) {
+      ctx.shadowColor = 'rgba(0,0,0,0.45)';
+      ctx.shadowBlur = 8;
+    }
+    drawLogo(ctx, white, -w / 2, -h / 2, h);
+    ctx.restore();
+    return;
+  }
   ctx.font = stickerFont(s);
   ctx.textAlign = 'center';
   ctx.textBaseline = 'middle';
@@ -1077,6 +1147,7 @@ export async function ensureFonts(sample = '') {
   const text = `$./graduate.sh 0123456789 ${sample}`;
   const jp = `ずっ友♡ギャル最強☆盛れたLOVE4EVER ${sample}`;
   await Promise.all([
+    ensureLogos(),
     document.fonts.load(`400 21px "IBM Plex Mono"`, text),
     document.fonts.load(`500 30px "IBM Plex Mono"`, text),
     document.fonts.load(`600 32px "IBM Plex Mono"`, text),

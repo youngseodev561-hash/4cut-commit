@@ -30,3 +30,4 @@
 @media (prefers-reduced-motion: reduce) {
   .gl * { animation: none !important; transition-duration: 0.01ms !important; }
 }
+.gl-logo { height: 34px; width: auto; vertical-align: middle; margin-right: 12px; opacity: 0.9; }

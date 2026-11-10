@@ -6,7 +6,10 @@ import { ensureFonts, renderStrip, type StripOptions } from '@/lib/strip';
 export function TopBar({ step, right }: { step?: number; right?: React.ReactNode }) {
   return (
     <header className="topbar">
-      <div className="brand">4CUT.COMMIT</div>
+      <div className="brand">
+        <span className="brand-logo" aria-hidden="true" />
+        4CUT.COMMIT
+      </div>
       {right ??
         (step ? (
           <div className="steps" aria-label={`${step}단계 / 4단계`}>

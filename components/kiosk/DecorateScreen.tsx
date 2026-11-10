@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useMemo, useRef, useState } from 'react';
-import { CONCEPTS, FILTERS, STRIP_H, STRIP_W, conceptOf, slotRects, stickerSize, type ConceptId, type Sticker, type Stroke } from '@/lib/strip';
+import { CONCEPTS, FILTERS, STRIP_H, STRIP_W, conceptOf, isLogoStamp, LOGO_STAMP, LOGO_STAMP_WHITE, slotRects, stickerSize, type ConceptId, type Sticker, type Stroke } from '@/lib/strip';
 import { stripOptions, type Patch, type Session } from './session';
 import { ArrowLeft, ArrowRight, StripCanvas, TopBar } from './ui';
 
@@ -11,14 +11,14 @@ const PINK = '#ff5fa2';
 const XRED = '#a8101c';
 
 const STICKER_SETS: Record<ConceptId, { list: string[]; tone?: string }> = {
-  cs: { list: ['</>', '{ }', ';', 'Hello, World!', 'sudo graduate', 'git push', '// TODO: 취업', 'while(alive)', '404', 'NULL', 'exit(0)', '#include <us>'] },
+  cs: { list: [LOGO_STAMP, LOGO_STAMP_WHITE, '</>', '{ }', ';', 'Hello, World!', 'sudo graduate', 'git push', '// TODO: 취업', 'while(alive)', '404', 'NULL', 'exit(0)', '#include <us>'] },
   gyaru: { list: ['ギャル最強', 'ずっ友だよ', '♡ = true', '盛れすぎ', 'sudo kawaii', '4人組', 'ぴえん', 'ありがと♡', 'NO.1 ギャル', 'LOVE♡'], tone: PINK },
   xmas: { list: ['Merry X-mas', 'Ho Ho Ho', '★ Noel ★', '산타 왔다감', '선물 = 우리', 'Let it snow', 'XOXO', '12.25'], tone: XRED },
   last: { list: ['BYE 2026', 'HELLO 2027', 'D-DAY', '12/31', '새해 복 많이', '올해도 고마워', 'git tag v2027', '마지막 학기'] },
   cute: { list: ['말랑', '꼬물꼬물', '귀여워', '♡', '오늘도 행복', '냠냠', 'zzZ', '헤헤', 'bug-free', 'LEVEL UP!', 'GAME CLEAR', '1UP'], tone: '#f78fb3' },
   basic: { list: ['BEST', 'FRIENDS', 'smile', '우정', '오늘의 우리', '찰칵', 'LOVE', '졸업 축하해'] },
 };
-const STAMPS = ['♡', '☆', '✦', '★', '♪', '✿', 'ずっ友', '最強', '盛れた', 'LOVE', '</>', 'bug 0'];
+const STAMPS = [LOGO_STAMP, LOGO_STAMP_WHITE, '♡', '☆', '✦', '★', '♪', '✿', 'ずっ友', '最強', '盛れた', 'LOVE', '</>', 'bug 0'];
 const PEN_COLORS = ['#ffffff', PINK, '#c2185b', '#0a0a0a', '#bdbdbd', '#f2c94c', XRED, '#1f6b3a'];
 const PEN_SIZES = [6, 12, 22];
 const MAX_STICKERS = 14;
@@ -30,6 +30,16 @@ function measure(s: Sticker) {
   return measureCtx ? stickerSize(measureCtx, s) : { w: 120, h: 58 };
 }
 const uid = () => Math.random().toString(36).slice(2, 9);
+/** 버튼 안에 들어가는 라벨: 로고 도장은 이미지로 */
+function Label({ t }: { t: string }) {
+  if (!isLogoStamp(t)) return <>{t}</>;
+  const white = t === LOGO_STAMP_WHITE;
+  return (
+    <span className={`logo-chip${white ? ' w' : ''}`}>
+      <img src={white ? '/brand/logo-white.png' : '/brand/logo-black.png'} alt={white ? '과 로고 (흰색)' : '과 로고'} />
+    </span>
+  );
+}
 
 export default function DecorateScreen({ session, patch, onBack, onNext }: { session: Session; patch: Patch; onBack: () => void; onNext: () => void }) {
   const concept = conceptOf(session.frame);
@@ -79,7 +89,7 @@ export default function DecorateScreen({ session, patch, onBack, onNext }: { ses
   function onLayerDown(e: React.PointerEvent) {
     const p = toStrip(e);
     if (tab === 'stamp') {
-      if (stamp) addSticker({ text: stamp, x: p.x, y: p.y, rot: Math.round((Math.random() - 0.5) * 20), dark: false, bare: true, scale: stamp.length <= 2 ? 1.9 : 1.3, tone: concept === 'gyaru' ? undefined : undefined });
+      if (stamp) addSticker({ text: stamp, x: p.x, y: p.y, rot: Math.round((Math.random() - 0.5) * 20), dark: false, bare: true, scale: isLogoStamp(stamp) ? 1 : stamp.length <= 2 ? 1.9 : 1.3, tone: concept === 'gyaru' ? undefined : undefined });
       return;
     }
     (e.currentTarget as HTMLElement).setPointerCapture(e.pointerId);
@@ -250,7 +260,7 @@ export default function DecorateScreen({ session, patch, onBack, onNext }: { ses
               <div className="stamp-grid">
                 {STAMPS.map((s) => (
                   <button key={s} className={stamp === s ? 'on' : ''} aria-pressed={stamp === s} onClick={() => setStamp(s)}>
-                    {s}
+                    <Label t={s} />
                   </button>
                 ))}
               </div>
@@ -271,15 +281,15 @@ export default function DecorateScreen({ session, patch, onBack, onNext }: { ses
                 {set.list.map((t, i) => (
                   <button
                     key={t}
-                    className={`chip${set.tone ? ' tone' : ''}`}
-                    style={set.tone ? { background: set.tone } : undefined}
+                    className={`chip${set.tone ? ' tone' : ''}${isLogoStamp(t) ? ' logo' : ''}`}
+                    style={set.tone && !isLogoStamp(t) ? { background: set.tone } : undefined}
                     disabled={session.stickers.length >= MAX_STICKERS}
                     onClick={() => {
                       const id = addSticker({ text: t, x: STRIP_W / 2 + (Math.random() - 0.5) * 160, y: STRIP_H * (0.2 + Math.random() * 0.6), rot: Math.round((Math.random() - 0.5) * 16), dark: i % 2 === 0, tone: set.tone });
                       if (id) setSel(id);
                     }}
                   >
-                    {t}
+                    <Label t={t} />
                   </button>
                 ))}
               </div>
