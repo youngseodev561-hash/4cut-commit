@@ -2,6 +2,7 @@
 
 import { useMemo } from 'react';
 import { StripCanvas, TopBar, ArrowRight } from './ui';
+import { audio } from '@/lib/sfx';
 import type { StripOptions } from '@/lib/strip';
 
 const demo = (frame: StripOptions['frame']): StripOptions => ({
@@ -20,7 +21,7 @@ export default function StartScreen({ onStart }: { onStart: () => void }) {
   const a = useMemo(() => demo('terminal'), []);
   const b = useMemo(() => demo('galPink'), []);
   return (
-    <div className="kiosk" onClick={onStart}>
+    <div className="kiosk" onClick={() => { audio(); onStart(); }}>
       <TopBar
         right={
           <div style={{ display: 'flex', gap: 32 }} className="muted">

@@ -118,3 +118,40 @@ export function ding(volume = 0.4) {
     s.stop(st + 0.65);
   });
 }
+
+/** 카운트다운 삑 (last=true면 높은 음) */
+export function beep(last = false, volume = 0.35) {
+  const c = audio();
+  if (!c) return;
+  const t = c.currentTime;
+  const o = c.createOscillator();
+  o.type = 'sine';
+  o.frequency.value = last ? 1320 : 880;
+  const g = c.createGain();
+  g.gain.setValueAtTime(0.0001, t);
+  g.gain.exponentialRampToValueAtTime(volume, t + 0.01);
+  g.gain.exponentialRampToValueAtTime(0.0001, t + (last ? 0.35 : 0.15));
+  o.connect(g).connect(c.destination);
+  o.start(t);
+  o.stop(t + 0.4);
+}
+
+/** 셔터: 찰-칵 (짧은 노이즈 두 번) */
+export function shutter(volume = 0.7) {
+  const c = audio();
+  if (!c) return;
+  const t = c.currentTime;
+  [0, 0.07].forEach((d, i) => {
+    const n = noise(c, 0.06);
+    const bp = c.createBiquadFilter();
+    bp.type = 'bandpass';
+    bp.frequency.value = i ? 2600 : 1800;
+    bp.Q.value = 0.8;
+    const g = c.createGain();
+    g.gain.setValueAtTime(volume, t + d);
+    g.gain.exponentialRampToValueAtTime(0.0001, t + d + 0.05);
+    n.connect(bp).connect(g).connect(c.destination);
+    n.start(t + d);
+    n.stop(t + d + 0.06);
+  });
+}

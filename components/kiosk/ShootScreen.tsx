@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { FILTERS, SLOT_ASPECT } from '@/lib/strip';
+import { beep, shutter } from '@/lib/sfx';
 import { TOTAL_SHOTS, type Patch, type Session, type Shot } from './session';
 import { ArrowLeft, TopBar } from './ui';
 
@@ -110,10 +111,12 @@ export default function ShootScreen({ session, patch, onCancel, onDone }: { sess
       for (let s = session.timer; s > 0; s--) {
         if (!aliveRef.current) return;
         setCount(s);
+        beep(s === 1);
         await sleep(1000);
       }
       if (!aliveRef.current) return;
       setCount(null);
+      shutter();
       const canvas = capture(i + 1);
       const shot = { canvas, thumb: makeThumb(canvas) };
       taken.push(shot);
