@@ -2,7 +2,8 @@
 html:has(.gw), body:has(.gw) { background: #ffffff; }
 .gw {
   --bg: #ffffff;
-  --paper: #f5f5f5;
+  --paper: #ffffff;
+  --serif: 'Gowun Batang', 'IBM Plex Sans KR', serif;
   --ink: #0a0a0a;
   --mute: rgb(10 10 10 / 0.58);
   --line: rgb(10 10 10 / 0.18);
@@ -35,9 +36,9 @@ html:has(.gw), body:has(.gw) { background: #ffffff; }
 /* 인트로 */
 .gw-intro { padding: 26px 0 22px; animation: gw-rise 0.7s var(--ease) backwards; }
 .gw-intro.is-tight { padding: 18px 0 14px; }
-.gw h1 { margin: 10px 0 12px; font-size: 34px; font-weight: 700; line-height: 1.18; letter-spacing: -0.035em; }
-.gw-to { font-family: var(--mono); font-size: 32px !important; font-weight: 600 !important; letter-spacing: -0.02em !important; }
-.gw-lead { margin: 0; font-size: 15px; line-height: 1.6; color: var(--mute); }
+.gw h1 { margin: 10px 0 12px; font-family: var(--serif); font-size: 25px; font-weight: 700; line-height: 1.45; letter-spacing: -0.02em; }
+.gw-to { font-family: var(--mono); font-size: 24px !important; font-weight: 500 !important; letter-spacing: -0.02em !important; }
+.gw-lead { margin: 0; font-size: 13.5px; line-height: 1.75; color: var(--mute); }
 .gw-lead b { color: var(--ink); font-weight: 700; }
 
 /* 검색 */
@@ -51,12 +52,12 @@ html:has(.gw), body:has(.gw) { background: #ffffff; }
 .gw-grid li { animation: gw-rise 0.6s calc(var(--i) * 35ms) var(--ease) backwards; }
 .gw-grid li:nth-child(4n + 2) { translate: 0 10px; }
 .gw-grid li:nth-child(4n + 3) { translate: 0 -4px; }
-.gw-print { display: flex; flex-direction: column; width: 100%; min-height: 150px; padding: 12px 12px 14px; text-align: left; border: 1px solid rgb(10 10 10 / 0.1); background: var(--paper); cursor: pointer;
+.gw-print { display: flex; flex-direction: column; width: 100%; min-height: 150px; padding: 12px 12px 14px; text-align: left; border: 1px solid rgb(10 10 10 / 0.12); background: var(--paper); cursor: pointer;
   box-shadow: 0 16px 26px -20px rgb(0 0 0 / 0.3); transition: transform 0.35s var(--spring), box-shadow 0.3s, background 0.2s; }
 .gw-print:active { transform: scale(0.97) rotate(-1deg); }
 .gw-print-top { display: flex; justify-content: space-between; gap: 8px; padding-bottom: 8px; border-bottom: 1px solid var(--line); font-family: var(--mono); font-size: 10.5px; font-weight: 500; letter-spacing: 0.12em; text-transform: uppercase; color: var(--mute); }
-.gw-print-name { margin-top: 12px; font-family: var(--mono); font-size: 17px; font-weight: 600; letter-spacing: -0.01em; line-height: 1.2; overflow-wrap: anywhere; }
-.gw-print-desc { margin-top: 6px; font-size: 13px; line-height: 1.45; color: var(--mute); word-break: keep-all; }
+.gw-print-name { margin-top: 12px; font-family: var(--mono); font-size: 14.5px; font-weight: 500; letter-spacing: -0.01em; line-height: 1.2; overflow-wrap: anywhere; }
+.gw-print-desc { margin-top: 6px; font-size: 12px; line-height: 1.55; color: var(--mute); word-break: keep-all; }
 .gw-print.is-sent { background: var(--ink); color: var(--paper); border-color: var(--ink); }
 .gw-print.is-sent .gw-print-top { color: rgb(245 245 245 / 0.7); border-color: rgb(245 245 245 / 0.25); }
 .gw-print.is-sent .gw-print-desc { color: rgb(245 245 245 / 0.65); }
@@ -64,9 +65,9 @@ html:has(.gw), body:has(.gw) { background: #ffffff; }
 
 /* 쓰기 */
 .gw-preview-wrap { padding: 4px 0 18px; perspective: 900px; }
-.gw-preview { display: flex; flex-direction: column; min-height: 168px; padding: 14px 16px 14px; background: var(--paper); border: 1px solid rgb(10 10 10 / 0.1); rotate: -1.5deg;
+.gw-preview { display: flex; flex-direction: column; min-height: 168px; padding: 14px 16px 14px; background: var(--paper); border: 1px solid rgb(10 10 10 / 0.12); rotate: -1.5deg;
   box-shadow: 0 22px 34px -24px rgb(0 0 0 / 0.33); animation: gw-drop 0.7s var(--spring) backwards; transition: rotate 0.4s var(--spring); }
-.gw-preview-txt { flex: 1; margin-top: 12px; font-size: 21px; font-weight: 500; line-height: 1.38; letter-spacing: -0.02em; word-break: keep-all; overflow-wrap: anywhere; white-space: pre-wrap; }
+.gw-preview-txt { flex: 1; margin-top: 12px; font-family: var(--serif); font-size: 17px; font-weight: 400; line-height: 1.7; letter-spacing: -0.01em; word-break: keep-all; overflow-wrap: anywhere; white-space: pre-wrap; }
 .gw-preview-txt.is-ph { color: rgb(10 10 10 / 0.32); }
 .gw-preview-by { margin-top: 10px; font-size: 13px; color: var(--mute); }
 .gw-preview.is-launch { visibility: hidden; }
@@ -83,12 +84,12 @@ html:has(.gw), body:has(.gw) { background: #ffffff; }
 .gw-err:not(:empty) { padding: 12px 14px; border: 1px solid #a3361b; background: rgb(163 54 27 / 0.06); animation: gw-shake 0.4s; }
 .gw-hint { margin: -4px 0 0; font-size: 13px; color: var(--mute); text-align: center; }
 
-.gw-fire { position: relative; overflow: hidden; isolation: isolate; display: flex; align-items: center; justify-content: space-between; width: 100%; min-height: 64px; padding: 0 22px;
-  border: 1px solid var(--ink); background: var(--ink); color: var(--paper) !important; font-size: 22px !important; font-weight: 700 !important; letter-spacing: -0.01em; cursor: pointer;
+.gw-fire { position: relative; overflow: hidden; isolation: isolate; display: flex; align-items: center; justify-content: space-between; width: 100%; min-height: 56px; padding: 0 22px;
+  border: 1px solid var(--ink); background: var(--ink); color: var(--paper) !important; font-size: 16px !important; font-weight: 500 !important; letter-spacing: 0.12em; cursor: pointer;
   transition: transform 0.25s var(--spring), opacity 0.2s; }
 .gw-fire::before { content: ''; position: absolute; inset: 0; z-index: -1; background: #0a0a0a; transform: scaleX(0); transform-origin: right; transition: transform 0.5s var(--ease); }
 .gw-fire:hover::before { transform: scaleX(1); transform-origin: left; }
-.gw-fire i { font-style: normal; font-family: var(--mono); font-size: 24px; transition: transform 0.4s var(--spring); }
+.gw-fire i { font-style: normal; font-family: var(--mono); font-size: 18px; transition: transform 0.4s var(--spring); }
 .gw-fire:active:not(:disabled) { transform: scale(0.98); }
 .gw-fire:active:not(:disabled) i { transform: translateY(-6px); }
 .gw-fire:disabled { opacity: 0.3; cursor: not-allowed; }
@@ -99,7 +100,7 @@ html:has(.gw), body:has(.gw) { background: #ffffff; }
 .gw-launch { position: fixed !important; inset: 0; z-index: 50 !important; overflow: hidden; display: grid; place-items: center; background: var(--bg); animation: gw-bg 1.9s linear forwards; }
 .gw-launch-card { position: absolute; left: 50%; top: 50%; width: min(78vw, 400px); min-height: 190px; display: flex; flex-direction: column; padding: 16px 18px; translate: -50% -50%;
   background: var(--paper); color: var(--ink); box-shadow: 0 40px 60px -30px rgb(0 0 0 / 0.39); animation: gw-fly 1.15s cubic-bezier(0.6, -0.05, 0.75, 0.2) forwards; }
-.gw-launch-card .gw-preview-txt { font-size: 22px; }
+.gw-launch-card .gw-preview-txt { font-size: 18px; }
 .gw-launch-lines i { position: absolute; top: -40%; left: var(--x); width: 1px; height: 40%; background: currentColor; color: var(--ink); opacity: 0;
   animation: gw-streak 0.5s calc(450ms + var(--d)) linear 3; }
 .gw-launch::after { content: ''; position: absolute; left: 50%; top: -10vh; width: 40px; height: 40px; margin-left: -20px; border-radius: 50%; border: 2px solid var(--paper); opacity: 0;
@@ -115,25 +116,25 @@ html:has(.gw), body:has(.gw) { background: #ffffff; }
 @keyframes gw-bg { 0%, 55% { background: var(--bg); color: var(--ink); } 62%, 88% { background: var(--ink); color: var(--paper); } 100% { background: var(--bg); color: var(--ink); } }
 @keyframes gw-ring { 0% { opacity: 1; transform: scale(0.2); } 100% { opacity: 0; transform: scale(30); } }
 .gw-launch-label { font-weight: 600; color: var(--ink); }
-.gw-launch-big { position: absolute; left: 0; right: 0; top: 50%; margin: 0; translate: 0 -50%; text-align: center; font-size: 88px; font-weight: 700; letter-spacing: -0.05em; color: var(--paper); opacity: 0;
+.gw-launch-big { position: absolute; left: 0; right: 0; top: 50%; margin: 0; translate: 0 -50%; text-align: center; font-family: var(--serif); font-size: 54px; font-weight: 700; letter-spacing: -0.02em; color: var(--paper); opacity: 0;
   animation: gw-big 1.9s var(--ease) forwards; }
 @keyframes gw-big { 0%, 58% { opacity: 0; transform: scale(0.7); } 66% { opacity: 1; transform: scale(1.06); } 72%, 88% { opacity: 1; transform: scale(1); } 100% { opacity: 0; transform: scale(1.1); } }
 @keyframes gw-label { 0%, 55% { opacity: 1; color: var(--ink); } 62%, 88% { opacity: 1; color: var(--paper); } 100% { opacity: 0; } }
 
 /* 완료 */
 .gw-done { padding: 30px 0 10px; display: flex; flex-direction: column; gap: 16px; animation: gw-rise 0.7s var(--ease) backwards; }
-.gw-done h1 { font-size: 52px; line-height: 1.05; letter-spacing: -0.045em; margin: 6px 0 0; animation: gw-drop 0.8s var(--spring) backwards; }
+.gw-done h1 { font-size: 32px; line-height: 1.3; letter-spacing: -0.02em; margin: 6px 0 0; animation: gw-drop 0.8s var(--spring) backwards; }
 .gw-sent-card { margin: 4px 0; padding: 16px 18px; background: var(--paper); border: 1px solid rgb(10 10 10 / 0.1); box-shadow: 0 16px 26px -20px rgb(0 0 0 / 0.3); rotate: 1deg; display: flex; flex-direction: column; gap: 8px; }
-.gw-sent-card span { font-size: 18px; font-weight: 500; line-height: 1.45; word-break: keep-all; overflow-wrap: anywhere; }
+.gw-sent-card span { font-family: var(--serif); font-size: 16px; font-weight: 400; line-height: 1.7; word-break: keep-all; overflow-wrap: anywhere; }
 .gw-sent-card em { font-style: normal; font-size: 13px; color: var(--mute); }
 .gw-links { padding: 16px 18px; background: var(--ink); color: var(--paper); display: flex; flex-direction: column; gap: 10px; animation: gw-drop 0.7s 0.4s var(--spring) backwards; }
 .gw-links .gw-small { opacity: 0.7; }
-.gw-link { margin: 0; display: flex; align-items: center; gap: 10px; flex-wrap: wrap; font-family: var(--mono); font-size: 18px; }
+.gw-link { margin: 0; display: flex; align-items: center; gap: 10px; flex-wrap: wrap; font-family: var(--mono); font-size: 14px; }
 .gw-link i { flex: 1; min-width: 30px; height: 0; border-top: 1px dashed currentColor; position: relative; }
 .gw-link i::before, .gw-link i::after { content: ''; position: absolute; top: -4px; width: 7px; height: 7px; background: currentColor; }
 .gw-link i::before { left: 0; }
 .gw-link i::after { right: 0; }
-.gw-link span { font-family: var(--sans); font-size: 15px; font-weight: 700; }
+.gw-link span { font-family: var(--sans); font-size: 13px; font-weight: 500; }
 .gw-tip { margin: 0; font-size: 14px; color: var(--mute); }
 .gw-actions { display: flex; flex-direction: column; gap: 10px; margin-top: 8px; }
 

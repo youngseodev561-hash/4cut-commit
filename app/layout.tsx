@@ -7,6 +7,8 @@ import '@fontsource/ibm-plex-sans-kr/500.css';
 import '@fontsource/ibm-plex-sans-kr/700.css';
 import '@fontsource/mochiy-pop-one/400.css';
 import '@fontsource/playfair-display/600-italic.css';
+import '@fontsource/gowun-batang/400.css';
+import '@fontsource/gowun-batang/700.css';
 import './globals.css';
 
 export const metadata: Metadata = {

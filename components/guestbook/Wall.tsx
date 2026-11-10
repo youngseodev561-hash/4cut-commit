@@ -52,8 +52,8 @@ const SLOTS = Array.from({ length: SLOT_N }, (_, i) => {
   };
 });
 // 지금 막 도착한 카드는 이만큼 크게 보여준다
-const HERO_W = 600;
-const HERO_H = 620;
+const HERO_W = 420;
+const HERO_H = 460;
 const heroW = (slot: number, w: number) => Math.max(w, Math.min(HERO_W, HERO_H / SLOTS[slot].ratio));
 
 // 프로젝트 라벨: 접촉 인화지의 인덱스처럼 프레임 가장자리를 한 바퀴. (x, y) = 선이 시작되는 점
