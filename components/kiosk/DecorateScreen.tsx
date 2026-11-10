@@ -15,6 +15,7 @@ const STICKER_SETS: Record<ConceptId, { list: string[]; tone?: string }> = {
   gyaru: { list: ['ギャル最強', 'ずっ友だよ', '♡ = true', '盛れすぎ', 'sudo kawaii', '4人組', 'ぴえん', 'ありがと♡', 'NO.1 ギャル', 'LOVE♡'], tone: PINK },
   xmas: { list: ['Merry X-mas', 'Ho Ho Ho', '★ Noel ★', '산타 왔다감', '선물 = 우리', 'Let it snow', 'XOXO', '12.25'], tone: XRED },
   last: { list: ['BYE 2026', 'HELLO 2027', 'D-DAY', '12/31', '새해 복 많이', '올해도 고마워', 'git tag v2027', '마지막 학기'] },
+  cute: { list: ['말랑', '꼬물꼬물', '귀여워', '♡', '오늘도 행복', '냠냠', 'zzZ', '헤헤', 'bug-free'], tone: '#f78fb3' },
   basic: { list: ['BEST', 'FRIENDS', 'smile', '우정', '오늘의 우리', '찰칵', 'LOVE', '졸업 축하해'] },
 };
 const STAMPS = ['♡', '☆', '✦', '★', '♪', '✿', 'ずっ友', '最強', '盛れた', 'LOVE', '</>', 'bug 0'];

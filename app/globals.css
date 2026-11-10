@@ -170,7 +170,7 @@ a { color: inherit; }
 .m-foot { border-top: 1px solid var(--ink); padding: 14px 20px 24px; display: flex; flex-direction: column; gap: 4px; font-family: var(--mono); font-size: 11px; color: var(--gray-3); }
 
 /* ---------- v2: concept tabs ---------- */
-.concept-tabs { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); border: 1px solid var(--ink); }
+.concept-tabs { display: grid; grid-template-columns: repeat(6, minmax(0, 1fr)); border: 1px solid var(--ink); }
 .concept-tabs button { height: 72px; background: var(--paper); border: 0; border-right: 1px solid var(--ink); cursor: pointer; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px; }
 .concept-tabs button:last-child { border-right: 0; }
 .concept-tabs b { font-size: 19px; font-weight: 500; }

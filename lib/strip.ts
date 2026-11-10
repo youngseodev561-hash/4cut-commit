@@ -4,12 +4,13 @@
 export const STRIP_W = 600;
 export const STRIP_H = 1800;
 
-export type ConceptId = 'cs' | 'gyaru' | 'xmas' | 'last' | 'basic';
+export type ConceptId = 'cs' | 'gyaru' | 'cute' | 'xmas' | 'last' | 'basic';
 export type FrameId =
   | 'terminal' | 'ide' | 'git' | 'binary'
   | 'galPink' | 'galBlack'
   | 'xmasRed' | 'xmasSnow'
   | 'bye2026' | 'receipt'
+  | 'mallang' | 'bugBuddy'
   | 'classicWhite' | 'classicBlack';
 export type FilterId = 'original' | 'mono' | 'contrast' | 'soft' | 'invert';
 
@@ -47,6 +48,7 @@ export interface StripOptions {
 export const CONCEPTS: { id: ConceptId; name: string; sub: string; frames: FrameId[]; defaultFilter: FilterId; defaultMessage: string }[] = [
   { id: 'cs', name: '컴소과', sub: 'DEV MODE', frames: ['terminal', 'ide', 'git', 'binary'], defaultFilter: 'mono', defaultMessage: '우리의 마지막 학기' },
   { id: 'gyaru', name: '일본 갸루', sub: 'ギャル', frames: ['galPink', 'galBlack'], defaultFilter: 'original', defaultMessage: '最強4人組' },
+  { id: 'cute', name: '말랑 귀염', sub: 'TINY & CUTE', frames: ['mallang', 'bugBuddy'], defaultFilter: 'soft', defaultMessage: '오늘도 말랑하게' },
   { id: 'xmas', name: '크리스마스', sub: 'XMAS', frames: ['xmasRed', 'xmasSnow'], defaultFilter: 'original', defaultMessage: '우리의 크리스마스' },
   { id: 'last', name: '2026 LAST', sub: 'BYE 2026', frames: ['bye2026', 'receipt'], defaultFilter: 'mono', defaultMessage: '안녕 2026, 고마웠어' },
   { id: 'basic', name: '기본', sub: 'CLASSIC', frames: ['classicWhite', 'classicBlack'], defaultFilter: 'original', defaultMessage: '우리의 마지막 학기' },
@@ -59,6 +61,8 @@ export const FRAMES: { id: FrameId; concept: ConceptId; name: string; desc: stri
   { id: 'binary', concept: 'cs', name: 'BINARY', desc: '0과 1로 쓴 졸업 축하' },
   { id: 'galPink', concept: 'gyaru', name: 'GAL PINK', desc: '핫핑크 프리쿠라' },
   { id: 'galBlack', concept: 'gyaru', name: 'GAL BLACK', desc: '블랙 + 핑크 반짝이' },
+  { id: 'mallang', concept: 'cute', name: 'MALLANG', desc: '파스텔 구름 · 별 낙서' },
+  { id: 'bugBuddy', concept: 'cute', name: 'BUG BUDDY', desc: '꼬마 버그 "버그찌"가 빼꼼' },
   { id: 'xmasRed', concept: 'xmas', name: 'XMAS RED', desc: '눈 내리는 레드' },
   { id: 'xmasSnow', concept: 'xmas', name: 'XMAS SNOW', desc: '하얀 눈송이' },
   { id: 'bye2026', concept: 'last', name: 'BYE 2026', desc: '2027로 넘어가기 전 마지막' },
@@ -113,6 +117,8 @@ const THEMES: Record<FrameId, Theme> = {
   binary: T({ bg: '#0a0a0a', fg: '#ffffff', ...DARK }),
   galPink: T({ bg: PINK, fg: '#ffffff', ph: '#f6dbe7', top: 140, bottom: 190, gap: 24, radius: 28, border: { color: '#ffffff', width: 12 } }),
   galBlack: T({ bg: '#0a0a0a', fg: '#ffffff', ...DARK, top: 140, bottom: 190, gap: 24, radius: 28, border: { color: PINK, width: 9 } }),
+  mallang: T({ bg: '#fff1c9', fg: '#4a3b2a', sub: '#8a7560', ph: '#fde7ef', top: 150, bottom: 196, gap: 26, left: 40, right: 40, radius: 40, border: { color: '#ffffff', width: 12 } }),
+  bugBuddy: T({ bg: '#dff2e8', fg: '#1f3a2e', sub: '#5b7a6c', ph: '#f4fbf7', top: 150, bottom: 196, gap: 26, left: 40, right: 40, radius: 22, border: { color: '#1f3a2e', width: 6 } }),
   xmasRed: T({ bg: XRED, fg: '#ffffff', ph: '#ececec', top: 144, bottom: 186, gap: 24, border: { color: '#ffffff', width: 9 } }),
   xmasSnow: T({ bg: '#ffffff', fg: '#0a0a0a', top: 144, bottom: 186, gap: 24 }),
   bye2026: T({ bg: '#0a0a0a', fg: '#ffffff', ...DARK, top: 210, bottom: 234, gap: 21 }),
@@ -267,6 +273,77 @@ function outlinedText(ctx: CanvasRenderingContext2D, text: string, x: number, y:
 
 function daysTo2027() {
   return Math.max(0, Math.ceil((new Date(2027, 0, 1).getTime() - Date.now()) / 86400000));
+}
+
+
+// ---------- 말랑 귀염: 오리지널 낙서 & 마스코트 ----------
+function cloud(ctx: CanvasRenderingContext2D, x: number, y: number, r: number) {
+  ctx.beginPath();
+  ctx.arc(x - r * 0.9, y, r * 0.65, Math.PI * 0.5, Math.PI * 1.5);
+  ctx.arc(x - r * 0.25, y - r * 0.45, r * 0.75, Math.PI, Math.PI * 1.85);
+  ctx.arc(x + r * 0.6, y - r * 0.1, r * 0.6, Math.PI * 1.3, Math.PI * 0.5);
+  ctx.closePath();
+}
+function star5(ctx: CanvasRenderingContext2D, x: number, y: number, r: number) {
+  ctx.beginPath();
+  for (let i = 0; i < 10; i++) {
+    const a = -Math.PI / 2 + (i * Math.PI) / 5;
+    const rr = i % 2 ? r * 0.45 : r;
+    ctx.lineTo(x + Math.cos(a) * rr, y + Math.sin(a) * rr);
+  }
+  ctx.closePath();
+}
+/** 버그찌: 동글동글 꼬마 무당벌레 (이 프로젝트 오리지널 마스코트) */
+function bugBuddy(ctx: CanvasRenderingContext2D, x: number, y: number, s: number, rot = 0) {
+  ctx.save();
+  ctx.translate(x, y);
+  ctx.rotate(rot);
+  ctx.scale(s, s);
+  ctx.lineCap = 'round';
+  ctx.lineJoin = 'round';
+  // 더듬이
+  ctx.strokeStyle = '#1f3a2e';
+  ctx.lineWidth = 3;
+  ctx.beginPath();
+  ctx.moveTo(-8, -26);
+  ctx.quadraticCurveTo(-16, -40, -22, -38);
+  ctx.moveTo(8, -26);
+  ctx.quadraticCurveTo(16, -40, 22, -38);
+  ctx.stroke();
+  ctx.fillStyle = '#1f3a2e';
+  ctx.beginPath();
+  ctx.arc(-22, -38, 3.5, 0, Math.PI * 2);
+  ctx.arc(22, -38, 3.5, 0, Math.PI * 2);
+  ctx.fill();
+  // 머리
+  ctx.beginPath();
+  ctx.ellipse(0, -18, 16, 12, 0, 0, Math.PI * 2);
+  ctx.fill();
+  // 몸통 (민트 등껍질 + 가운데 줄 + 점)
+  ctx.fillStyle = '#7fd1ae';
+  ctx.beginPath();
+  ctx.ellipse(0, 6, 26, 24, 0, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.lineWidth = 3;
+  ctx.strokeStyle = '#1f3a2e';
+  ctx.stroke();
+  ctx.beginPath();
+  ctx.moveTo(0, -16);
+  ctx.lineTo(0, 30);
+  ctx.stroke();
+  ctx.fillStyle = '#1f3a2e';
+  [[-12, 0], [12, 0], [-10, 16], [10, 16]].forEach(([dx, dy]) => {
+    ctx.beginPath();
+    ctx.arc(dx, dy, 4, 0, Math.PI * 2);
+    ctx.fill();
+  });
+  // 눈 + 볼
+  ctx.fillStyle = '#ffffff';
+  ctx.beginPath();
+  ctx.arc(-6, -19, 3.2, 0, Math.PI * 2);
+  ctx.arc(6, -19, 3.2, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.restore();
 }
 
 // ---------- frame chrome ----------
@@ -524,6 +601,69 @@ function drawChrome(ctx: CanvasRenderingContext2D, o: StripOptions, t: Theme, sl
       ctx.font = `400 20px ${MONO}`;
       ctx.fillStyle = '#5a5a5a';
       ctx.fillText('THANK YOU · SEE YOU 2027', cx, fy + 256);
+      break;
+    }
+
+    case 'mallang': {
+      const r = rng(31);
+      // 배경 낙서: 구름 · 별 · 하트
+      ctx.lineWidth = 4;
+      [[90, 60, 34], [556, 1770, 26], [540, 640, 26], [40, 1180, 24]].forEach(([cx0, cy0, rr]) => {
+        cloud(ctx, cx0, cy0, rr);
+        ctx.fillStyle = '#ffffff';
+        ctx.fill();
+        ctx.strokeStyle = '#e9c98f';
+        ctx.stroke();
+      });
+      for (let i = 0; i < 16; i++) {
+        ctx.fillStyle = ['#ff9ec7', '#9fd3ff', '#ffd36b'][i % 3];
+        const edge = r() > 0.5;
+        star5(ctx, edge ? 14 + r() * 18 : STRIP_W - 14 - r() * 18, 160 + r() * 1440, 6 + r() * 6);
+        ctx.fill();
+      }
+      ctx.lineWidth = 4;
+      ctx.strokeStyle = '#ff9ec7';
+      heart(ctx, 540, 30, 34, false);
+      ctx.textAlign = 'center';
+      ctx.font = `400 54px ${POP}`;
+      outlinedText(ctx, '오늘도 말랑', cx, 112, '#4a3b2a', '#ffffff', 12);
+      if (msg) {
+        fitFont(ctx, msg, 400, 36, POP, maxW);
+        outlinedText(ctx, msg, cx, fy + 88, '#4a3b2a', '#ffffff', 10);
+      }
+      ctx.font = `400 22px ${POP}`;
+      ctx.fillStyle = '#8a7560';
+      ctx.fillText(['♡ tiny & cute', o.showDate ? o.date : ''].filter(Boolean).join(' · '), cx, fy + 136);
+      break;
+    }
+
+    case 'bugBuddy': {
+      ctx.textAlign = 'center';
+      ctx.font = `400 46px ${POP}`;
+      ctx.fillStyle = '#1f3a2e';
+      ctx.fillText('bug-free day', cx, 104);
+      // 점선 테두리
+      ctx.setLineDash([2, 14]);
+      ctx.lineCap = 'round';
+      ctx.lineWidth = 6;
+      ctx.strokeStyle = '#7fd1ae';
+      ctx.strokeRect(14, 14, STRIP_W - 28, STRIP_H - 28);
+      ctx.setLineDash([]);
+      // 버그찌가 사진 모서리마다 빼꼼
+      bugBuddy(ctx, 70, 128, 1.1, -0.3);
+      bugBuddy(ctx, slots[1].x + slots[1].w - 6, slots[1].y + 10, 0.9, 0.5);
+      bugBuddy(ctx, slots[2].x + 10, slots[2].y + slots[2].h - 4, 0.85, -0.6);
+      bugBuddy(ctx, STRIP_W - 80, fy + 120, 1.2, 0.2);
+      if (msg) {
+        fitFont(ctx, msg, 400, 34, POP, maxW - 120);
+        ctx.fillStyle = '#1f3a2e';
+        ctx.textAlign = 'left';
+        ctx.fillText(msg, 40, fy + 86);
+      }
+      ctx.textAlign = 'left';
+      ctx.font = `400 21px ${MONO}`;
+      ctx.fillStyle = '#5b7a6c';
+      ctx.fillText(['0 bugs found', o.showDate ? o.date : ''].filter(Boolean).join(' · '), 40, fy + 128);
       break;
     }
 
