@@ -2,6 +2,7 @@
 
 import { useEffect, useRef } from 'react';
 import { ensureFonts, renderStrip, type StripOptions } from '@/lib/strip';
+import { Gear } from '@/components/brand';
 
 export function TopBar({ step, right }: { step?: number; right?: React.ReactNode }) {
   return (
@@ -14,7 +15,10 @@ export function TopBar({ step, right }: { step?: number; right?: React.ReactNode
         (step ? (
           <div className="steps" aria-label={`${step}단계 / 4단계`}>
             {[1, 2, 3, 4].map((n) => (
-              <i key={n} className={n <= step ? 'on' : ''} />
+              <span key={n} className={`step-gear${n < step ? ' done' : n === step ? ' now' : ''}`}>
+                <Gear size={20} fill={n <= step} spin={n === step ? 'slow' : undefined} />
+                {n < 4 && <i className={n < step ? 'on' : ''} />}
+              </span>
             ))}
             <span>STEP 0{step} / 04</span>
           </div>

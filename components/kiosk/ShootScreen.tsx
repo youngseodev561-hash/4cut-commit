@@ -1,5 +1,6 @@
 'use client';
 
+import { Gear, GearLoader } from '@/components/brand';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { FILTERS, SLOT_ASPECT } from '@/lib/strip';
 import { beep, shutter } from '@/lib/sfx';
@@ -155,7 +156,10 @@ export default function ShootScreen({ session, patch, onCancel, onDone }: { sess
 
           {count !== null && (
             <div className="count" aria-live="assertive">
-              <b>{count}</b>
+              <div className="count-gear">
+                <Gear size={300} teeth={12} spin="slow" />
+                <b key={count}>{count}</b>
+              </div>
               <span className="mono" style={{ fontSize: 18, color: '#ddd' }}>compiling frame[{shots.length}]...</span>
             </div>
           )}
@@ -169,7 +173,11 @@ export default function ShootScreen({ session, patch, onCancel, onDone }: { sess
             </div>
           )}
 
-          {phase === 'init' && <div className="count mono" style={{ fontSize: 18 }}>카메라 연결 중...</div>}
+          {phase === 'init' && (
+            <div className="count mono" style={{ fontSize: 18 }}>
+              <GearLoader label="카메라 연결 중..." className="on-dark" />
+            </div>
+          )}
 
           {phase === 'error' && (
             <div className="count" style={{ padding: 40, textAlign: 'center' }}>

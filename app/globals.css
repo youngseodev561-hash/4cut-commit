@@ -208,7 +208,6 @@ a { color: inherit; }
 .brand { display: inline-flex; align-items: center; gap: 10px; }
 .brand-logo { width: 28px; height: 29px; display: inline-block; background: currentColor; -webkit-mask: url(/brand/logo-black.png) center / contain no-repeat; mask: url(/brand/logo-black.png) center / contain no-repeat; }
 .start-badge { display: flex; align-items: center; gap: 18px; }
-.start-badge img { width: 92px; height: auto; display: block; }
 .start-badge div { display: flex; flex-direction: column; gap: 4px; }
 .start-badge b { font-size: 22px; letter-spacing: -0.02em; }
 .start-badge span { font-family: var(--mono); font-size: 13px; color: var(--gray-3); letter-spacing: 0.08em; }
@@ -219,13 +218,69 @@ a { color: inherit; }
 .chip.logo { padding: 0 10px; }
 .chip.logo .logo-chip img { height: 38px; }
 
+/* ---------- 로고 모티프: 톱니 · 뱀 곡선 · 둥근 글씨 ---------- */
+:root { --gear-hole: var(--paper); }
+.kiosk.dark { --gear-hole: var(--ink); }
+.gear { display: block; flex: none; }
+.spin-slow { animation: gear-spin 9s linear infinite; }
+.spin-fast { animation: gear-spin 2.4s linear infinite; }
+.spin-rev { animation: gear-spin 2.4s linear infinite reverse; }
+@keyframes gear-spin { to { transform: rotate(360deg); } }
+@media (prefers-reduced-motion: reduce) { .spin-slow, .spin-fast, .spin-rev, .ring-text { animation: none !important; } }
+
+.steps { gap: 0; }
+.step-gear { display: inline-flex; align-items: center; color: var(--gray-2); }
+.step-gear.done, .step-gear.now { color: currentColor; }
+.topbar .step-gear.done, .topbar .step-gear.now { color: var(--ink); }
+.kiosk.dark .topbar .step-gear.done, .kiosk.dark .topbar .step-gear.now { color: var(--paper); }
+.kiosk.dark .step-gear { color: #444; }
+.step-gear i { width: 26px; height: 3px; margin: 0 6px; background: var(--gray-2); display: block; }
+.step-gear i.on { background: var(--ink); }
+.kiosk.dark .step-gear i { background: #444; }
+.kiosk.dark .step-gear i.on { background: var(--paper); }
+
+.gear-loader { display: flex; flex-direction: column; align-items: center; gap: 14px; font-family: var(--mono); font-size: 14px; }
+.gear-loader .gl-gears { position: relative; }
+.gear-loader .gear { position: absolute; }
+.gear-loader.on-dark { color: #fff; --gear-hole: var(--ink); }
+
+.logo-ring { position: relative; flex: none; color: var(--ink); }
+.logo-ring .ring-text { position: absolute; inset: 0; width: 100%; height: 100%; animation: gear-spin 28s linear infinite; font-family: var(--mono); font-weight: 600; }
+.logo-ring img { position: absolute; left: 50%; top: 50%; width: 58%; height: auto; transform: translate(-50%, -50%); }
+
+.start-main { position: relative; overflow: hidden; }
+.start-main > section { position: relative; z-index: 1; }
+.snake-line { position: absolute; inset: 0; width: 100%; height: 100%; pointer-events: none; }
+.start-snake { color: var(--ink); opacity: 0.06; stroke-width: 74; z-index: 0; }
+.start-snake path { stroke-dasharray: 5200; stroke-dashoffset: 5200; animation: snake-draw 3.2s cubic-bezier(0.22, 1, 0.36, 1) 0.2s forwards; }
+@keyframes snake-draw { to { stroke-dashoffset: 0; } }
+
+.count-gear { position: relative; width: 300px; height: 300px; display: flex; align-items: center; justify-content: center; }
+.count-gear .gear { position: absolute; inset: 0; color: rgba(255,255,255,0.55); --gear-hole: transparent; }
+.count-gear b { position: relative; animation: count-pop 0.45s cubic-bezier(0.22, 1.4, 0.36, 1); }
+@keyframes count-pop { from { transform: scale(1.5); opacity: 0; } }
+
+.result-left { position: relative; overflow: hidden; }
+.result-left > img, .result-left > .gear-loader { position: relative; z-index: 1; }
+.result-snake { color: #fff; opacity: 0.09; stroke-width: 90; }
+.result-gears { display: flex; align-items: flex-end; gap: 4px; color: var(--ink); margin-bottom: 4px; }
+
+.deco-left { position: relative; }
+.deco-left::before { content: ''; position: absolute; right: -40px; bottom: 40px; width: 300px; height: 309px; background: url(/brand/logo-black.png) center / contain no-repeat; opacity: 0.05; pointer-events: none; }
+.deco-view, .deco-zoom { position: relative; z-index: 1; }
+.shot .num { border-radius: 50%; }
+
 /* ---------- mobile (≤ 760px): 세로 스크롤 레이아웃 ---------- */
 @media (max-width: 760px) {
   .kiosk { height: auto; min-height: 100dvh; overflow: visible; }
   .body { flex-direction: column; }
   .topbar { padding: 14px 16px; font-size: 12px; position: sticky; top: 0; z-index: 20; background: var(--paper); }
   .kiosk.dark .topbar { background: var(--ink); }
-  .steps i { width: 16px; }
+  .step-gear i { width: 10px; margin: 0 3px; }
+  .step-gear svg { width: 16px; height: 16px; }
+  .count-gear { width: 220px; height: 220px; }
+  .count-gear .gear { width: 220px; height: 220px; }
+  .logo-ring { width: 100px !important; height: 100px !important; }
   .steps span { display: none; }
   .pad { padding: 18px 16px; }
   .footbar { position: sticky; bottom: 0; z-index: 20; background: var(--paper); padding: 12px 16px calc(12px + env(safe-area-inset-bottom)); gap: 10px; border-top: 1px solid var(--ink); }
@@ -237,7 +292,6 @@ a { color: inherit; }
 
   /* start */
   .start-meta { display: none !important; }
-  .start-badge img { width: 64px; }
   .start-badge b { font-size: 18px; }
   .start-badge span { font-size: 11px; }
   .brand-logo { width: 22px; height: 23px; }

@@ -1,5 +1,6 @@
 'use client';
 
+import { LogoRing, SnakeLine } from '@/components/brand';
 import { useMemo } from 'react';
 import { StripCanvas, TopBar, ArrowRight } from './ui';
 import { audio } from '@/lib/sfx';
@@ -31,10 +32,10 @@ export default function StartScreen({ onStart }: { onStart: () => void }) {
         }
       />
       <main className="start-main">
+        <SnakeLine className="start-snake" />
         <section style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: 28 }}>
           <div className="start-badge">
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img src="/brand/logo-black.png" alt="컴퓨터소프트웨어과 로고" />
+            <LogoRing size={132} />
             <div>
               <b>컴퓨터소프트웨어과</b>
               <span>GRADUATION EXHIBITION 2026</span>

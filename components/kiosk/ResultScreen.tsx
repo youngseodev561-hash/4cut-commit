@@ -1,5 +1,6 @@
 'use client';
 
+import { Gear, GearLoader, SnakeLine } from '@/components/brand';
 import { useEffect, useRef, useState } from 'react';
 import QRCode from 'qrcode';
 import { ensureFonts, renderStrip } from '@/lib/strip';
@@ -93,13 +94,19 @@ export default function ResultScreen({ session, onDone }: { session: Session; on
       />
       <main className="body">
         <section className="result-left">
+          <SnakeLine className="result-snake" />
           {/* eslint-disable-next-line @next/next/no-img-element */}
-          {png ? <img src={png} alt="완성된 네컷 사진" /> : <span className="mono" style={{ color: '#fff' }}>building...</span>}
+          {png ? <img src={png} alt="완성된 네컷 사진" /> : <GearLoader label="building..." className="on-dark" />}
         </section>
 
         <section className="pad result-right" style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: 32, padding: '40px 56px' }}>
           <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
             <div className="prompt">&gt; build complete in 4 shots</div>
+            <div className="result-gears" aria-hidden="true">
+              <Gear size={46} fill spin="slow" />
+              <Gear size={30} spin="rev" />
+              <Gear size={38} fill spin="slow" />
+            </div>
             <h1 className="h1 result-h1" style={{ fontSize: 60, lineHeight: 1.05, letterSpacing: '-0.04em' }}>
               빌드 성공!
               <br />
@@ -130,7 +137,7 @@ export default function ResultScreen({ session, onDone }: { session: Session; on
                   // eslint-disable-next-line @next/next/no-img-element
                   <img src={upload.qr} alt="휴대폰 저장용 QR 코드" />
                 )}
-                {upload.state === 'uploading' && 'pushing...'}
+                {upload.state === 'uploading' && <GearLoader label="pushing..." size={44} />}
                 {upload.state === 'error' && 'QR 생성 실패'}
               </div>
               <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
