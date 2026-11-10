@@ -57,9 +57,8 @@ lib/storage.ts             사진 저장소 (로컬 디스크)
 1. GitHub 저장소를 Vercel에서 **Import** → Framework는 Next.js 자동 인식.
 2. 프로젝트 **Storage** 탭에서
    - **Blob** 스토어 만들기 → `BLOB_READ_WRITE_TOKEN` 자동 추가 (사진 저장)
-   - **Upstash for Redis** (Marketplace, 무료 플랜) 연결 → `KV_REST_API_URL`, `KV_REST_API_TOKEN` 자동 추가 (사진 정보 · 방명록)
-3. **Settings → Environment Variables**에 `ADMIN_KEY`(관리자 비밀번호) 추가.
-4. Redeploy. HTTPS라서 카메라가 바로 동작해요.
+   - **Upstash for Redis** (Marketplace, 무료 플랜) 연결 → `KV_REST_API_URL`, `KV_REST_API_TOKEN` 자동 추가 (사진 정보)
+3. Redeploy. HTTPS라서 카메라가 바로 동작해요.
 
 환경 변수가 없으면(로컬) 자동으로 `data/` 폴더에 저장하는 방식으로 돌아가요.
 
@@ -70,10 +69,6 @@ lib/storage.ts             사진 저장소 (로컬 디스크)
 | `/` | 인생네컷 키오스크 |
 | `/p/[id]` | QR로 열리는 사진 저장 페이지 |
 | `/gallery` | 네컷 갤러리 월 — 동의한 사진이 흘러가는 전시 화면 (`?demo=1` 리허설) |
-| `/guestbook` | 방명록 큰 화면 (`?demo=1` 리허설 모드) |
-| `/g` | 방명록 쓰기 (폰) |
-| `/admin` | 방명록 관리 (ADMIN_KEY) |
 
-## 방명록 프로젝트 목록
 
-`lib/projects.ts`의 예시 12개를 실제 졸업작품으로 바꿔주세요. 이름(name), 팀(team), 한 줄 설명(desc), 소개(intro, 2~3문장), 팀원(members), 기술 태그(tags)를 채우면 큰 화면 소개 카드와 폰 화면에 그대로 나와요.
+> 방명록은 별도 저장소(`grad-guestbook`)로 분리했어요.
