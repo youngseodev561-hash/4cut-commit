@@ -28,8 +28,8 @@ export default function FrameScreen({ session, patch, onBack, onNext }: { sessio
   return (
     <div className="kiosk">
       <TopBar step={1} />
-      <div style={{ padding: '28px 56px 0', display: 'flex', flexDirection: 'column', gap: 18 }}>
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end' }}>
+      <div className="frame-head" style={{ padding: '28px 56px 0', display: 'flex', flexDirection: 'column', gap: 18 }}>
+        <div className="head-row" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end' }}>
           <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
             <div className="prompt">&gt; select --concept</div>
             <h1 className="h1">오늘의 컨셉은?</h1>

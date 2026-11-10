@@ -137,7 +137,7 @@ export default function ShootScreen({ session, patch, onCancel, onDone }: { sess
   return (
     <div className="kiosk dark">
       <TopBar step={2} />
-      <main className="body pad" style={{ gap: 32 }}>
+      <main className="body pad shoot-body" style={{ gap: 32 }}>
         <section className="viewfinder">
           <video ref={videoRef} playsInline muted style={{ display: fake ? 'none' : undefined, filter: FILTERS.find((f) => f.id === session.filter)?.css }} />
           <div className="vf-guide" style={{ aspectRatio: String(SLOT_ASPECT) }} aria-hidden="true" />
@@ -145,11 +145,11 @@ export default function ShootScreen({ session, patch, onCancel, onDone }: { sess
           {corner({ top: 20, right: 20 }, { borderTopWidth: b, borderRightWidth: b })}
           {corner({ bottom: 20, left: 20 }, { borderBottomWidth: b, borderLeftWidth: b })}
           {corner({ bottom: 20, right: 20 }, { borderBottomWidth: b, borderRightWidth: b })}
-          <div className="vf-label" style={{ top: 34, left: 80 }}>
+          <div className="vf-label vf-l" style={{ top: 34, left: 80 }}>
             <span className={shooting ? 'cursor' : ''} style={{ width: 10, height: 10, borderRadius: '50%', background: '#fff' }} />
             {fake ? 'TEST MODE' : 'LIVE · CAM_01'}
           </div>
-          <div className="vf-label" style={{ top: 34, right: 80 }}>
+          <div className="vf-label vf-r" style={{ top: 34, right: 80 }}>
             SHOT {Math.min(shots.length + 1, TOTAL_SHOTS)} / {TOTAL_SHOTS}
           </div>
 
@@ -162,7 +162,7 @@ export default function ShootScreen({ session, patch, onCancel, onDone }: { sess
 
           {phase === 'ready' && (
             <div className="count">
-              <button className="btn btn-primary" style={{ minHeight: 96, fontSize: 28, padding: '0 56px' }} onClick={run}>
+              <button className="btn btn-primary shoot-go" style={{ minHeight: 96, fontSize: 28, padding: '0 56px' }} onClick={run}>
                 촬영 시작 ({TOTAL_SHOTS}컷)
               </button>
               <span style={{ fontSize: 18, color: '#ddd', marginTop: 16 }}>{session.timer}초 간격으로 {TOTAL_SHOTS}장을 찍고, 그중 4장을 골라요</span>
@@ -191,7 +191,7 @@ export default function ShootScreen({ session, patch, onCancel, onDone }: { sess
           )}
 
           {shooting && count !== null && (
-            <div style={{ position: 'absolute', bottom: 34, left: 0, right: 0, textAlign: 'center', fontSize: 18, color: '#eee' }}>
+            <div className="vf-tip" style={{ position: 'absolute', bottom: 34, left: 0, right: 0, textAlign: 'center', fontSize: 18, color: '#eee' }}>
               카메라를 보고 포즈! 브이 대신 <span className="mono">&lt;/&gt;</span> 손 모양 어때요?
             </div>
           )}

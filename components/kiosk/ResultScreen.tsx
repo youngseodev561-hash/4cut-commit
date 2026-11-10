@@ -97,10 +97,10 @@ export default function ResultScreen({ session, onDone }: { session: Session; on
           {png ? <img src={png} alt="완성된 네컷 사진" /> : <span className="mono" style={{ color: '#fff' }}>building...</span>}
         </section>
 
-        <section className="pad" style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: 32, padding: '40px 56px' }}>
+        <section className="pad result-right" style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: 32, padding: '40px 56px' }}>
           <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
             <div className="prompt">&gt; build complete in 4 shots</div>
-            <h1 className="h1" style={{ fontSize: 60, lineHeight: 1.05, letterSpacing: '-0.04em' }}>
+            <h1 className="h1 result-h1" style={{ fontSize: 60, lineHeight: 1.05, letterSpacing: '-0.04em' }}>
               빌드 성공!
               <br />
               추억이 배포됐어요.
@@ -124,7 +124,7 @@ export default function ResultScreen({ session, onDone }: { session: Session; on
               </button>
             </div>
 
-            <div className="card" style={{ flexDirection: 'row', alignItems: 'center', gap: 20 }}>
+            <div className="card qr-card" style={{ flexDirection: 'row', alignItems: 'center', gap: 20 }}>
               <div className="qr">
                 {upload.state === 'done' && (
                   // eslint-disable-next-line @next/next/no-img-element

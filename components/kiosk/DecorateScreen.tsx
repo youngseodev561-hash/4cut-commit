@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useMemo, useRef, useState } from 'react';
-import { CONCEPTS, FILTERS, STRIP_H, STRIP_W, conceptOf, stickerSize, type ConceptId, type Sticker, type Stroke } from '@/lib/strip';
+import { CONCEPTS, FILTERS, STRIP_H, STRIP_W, conceptOf, slotRects, stickerSize, type ConceptId, type Sticker, type Stroke } from '@/lib/strip';
 import { stripOptions, type Patch, type Session } from './session';
 import { ArrowLeft, ArrowRight, StripCanvas, TopBar } from './ui';
 
@@ -43,6 +43,9 @@ export default function DecorateScreen({ session, patch, onBack, onNext }: { ses
   const [stickerSet, setStickerSet] = useState<ConceptId>(concept);
   const [live, setLive] = useState<Stroke | null>(null);
   const stageRef = useRef<HTMLDivElement>(null);
+  const viewRef = useRef<HTMLDivElement>(null);
+  const [big, setBig] = useState(false);
+  const [cut, setCut] = useState(0);
   const drag = useRef<{ id: string; px: number; py: number; x: number; y: number } | null>(null);
   const drawing = useRef<Stroke | null>(null);
 
@@ -101,14 +104,31 @@ export default function DecorateScreen({ session, patch, onBack, onNext }: { ses
   }
 
   const penMode = tab === 'pen' || tab === 'stamp';
+
+  // 크게 보기: 한 컷씩 화면 가득 보여주고, 컷 번호로 이동
+  function goCut(i: number) {
+    setCut(i);
+    const v = viewRef.current;
+    const r = slotRects(session.frame)[i];
+    if (!v || !r) return;
+    const top = (r.y + r.h / 2) * scale - v.clientHeight / 2 + 24;
+    v.scrollTo({ top: Math.max(0, top), behavior: 'smooth' });
+  }
+  function toggleBig() {
+    const next = !big;
+    setBig(next);
+    if (next) requestAnimationFrame(() => requestAnimationFrame(() => goCut(cut)));
+    else viewRef.current?.scrollTo({ top: 0 });
+  }
   const set = STICKER_SETS[stickerSet];
 
   return (
     <div className="kiosk">
       <TopBar step={4} />
       <main className="body">
-        <section className="deco-left" onPointerDown={(e) => e.target === e.currentTarget && setSel(null)}>
-          <div className="stage" ref={stageRef}>
+        <section className="deco-left">
+          <div className={`deco-view${big ? ' big' : ''}`} ref={viewRef} onPointerDown={(e) => e.target === e.currentTarget && setSel(null)}>
+          <div className={`stage${big ? ' big' : ''}`} ref={stageRef}>
             <StripCanvas options={options} />
             {penMode && <div className="pen-layer" onPointerDown={onLayerDown} onPointerMove={onLayerMove} onPointerUp={onLayerUp} onPointerCancel={onLayerUp} aria-label="사진 위에 그리기" />}
             {session.stickers.map((s) => {
@@ -151,9 +171,21 @@ export default function DecorateScreen({ session, patch, onBack, onNext }: { ses
               );
             })}
           </div>
+          </div>
+          <div className="deco-zoom">
+            <button className={`zbtn${big ? ' on' : ''}`} aria-pressed={big} onClick={toggleBig}>
+              {big ? '전체 보기' : '크게 보기'}
+            </button>
+            {big &&
+              slotRects(session.frame).map((_, i) => (
+                <button key={i} className={`zbtn num${cut === i ? ' on' : ''}`} aria-label={`${i + 1}번 컷 크게 보기`} onClick={() => goCut(i)}>
+                  {i + 1}
+                </button>
+              ))}
+          </div>
         </section>
 
-        <section className="pad" style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: 20, minWidth: 0 }}>
+        <section className="pad deco-right" style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: 20, minWidth: 0 }}>
           <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
             <div className="prompt">&gt; {concept === 'gyaru' ? './brush.exe --mode=gal' : 'npm run decorate'}</div>
             <h1 className="h1">{concept === 'gyaru' ? '마음껏 낙서하세요 ♡' : '마지막으로 꾸며볼까요?'}</h1>

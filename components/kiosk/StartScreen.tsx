@@ -24,7 +24,7 @@ export default function StartScreen({ onStart }: { onStart: () => void }) {
     <div className="kiosk" onClick={() => { audio(); onStart(); }}>
       <TopBar
         right={
-          <div style={{ display: 'flex', gap: 32 }} className="muted">
+          <div style={{ display: 'flex', gap: 32 }} className="muted start-meta">
             <span>컴퓨터소프트웨어과 졸업작품전</span>
             <span>v1.0.0</span>
           </div>
@@ -41,15 +41,15 @@ export default function StartScreen({ onStart }: { onStart: () => void }) {
             <br />
             커밋하세요.
           </h1>
-          <p style={{ margin: 0, fontSize: 22, lineHeight: 1.5, color: '#444' }}>네 컷의 사진으로 남기는, 우리의 졸업 버전 기록.</p>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 24, marginTop: 12 }}>
+          <p className="start-lead" style={{ margin: 0, fontSize: 22, lineHeight: 1.5, color: '#444' }}>네 컷의 사진으로 남기는, 우리의 졸업 버전 기록.</p>
+          <div className="start-cta" style={{ display: 'flex', alignItems: 'center', gap: 24, marginTop: 12 }}>
             <button className="btn btn-primary" style={{ minHeight: 80, fontSize: 24 }} onClick={onStart}>
               시작하기 <ArrowRight />
             </button>
             <span className="mono muted" style={{ fontSize: 15 }}>[ 화면을 터치하세요 ]</span>
           </div>
         </section>
-        <section aria-hidden="true" style={{ width: 440, height: '82%', position: 'relative', flex: 'none' }}>
+        <section aria-hidden="true" className="start-strips" style={{ width: 440, height: '82%', position: 'relative', flex: 'none' }}>
           <StripCanvas options={a} style={{ position: 'absolute', left: 20, top: '6%', height: '88%', transform: 'rotate(-6deg)' }} />
           <StripCanvas options={b} style={{ position: 'absolute', left: 220, top: 0, height: '88%', transform: 'rotate(5deg)' }} />
         </section>

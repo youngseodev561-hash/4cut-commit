@@ -18,7 +18,7 @@ export default function SelectScreen({ session, patch, onRetake, onNext }: { ses
   return (
     <div className="kiosk">
       <TopBar step={3} />
-      <main className="body pad" style={{ gap: 48 }}>
+      <main className="body pad select-body" style={{ gap: 48 }}>
         <section style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: 20, minWidth: 0 }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end' }}>
             <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
@@ -45,7 +45,7 @@ export default function SelectScreen({ session, patch, onRetake, onNext }: { ses
             })}
           </div>
         </section>
-        <aside style={{ width: 240, flex: 'none', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 16 }}>
+        <aside className="select-aside" style={{ width: 240, flex: 'none', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 16 }}>
           <div className="prompt" style={{ alignSelf: 'flex-start', fontSize: 13 }}>
             PREVIEW · 누른 순서대로 들어가요
           </div>
