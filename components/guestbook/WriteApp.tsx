@@ -88,7 +88,7 @@ export default function WriteApp() {
     } catch {
       /* 무시 */
     }
-    // 먼저 서버 응답을 확인 (욕설/연타는 발사 전에 막기)
+    // 먼저 서버 응답을 확인 (욕설/연타는 보내기 연출 전에 막기)
     let res: Response;
     try {
       res = await fetch('/api/guestbook', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) });
@@ -100,7 +100,7 @@ export default function WriteApp() {
     const data = (await res.json().catch(() => ({}))) as { error?: string; newLinks?: string[] };
     if (!res.ok) {
       setBusy(false);
-      if (res.status === 429) setError(data.error ?? '잠깐! 조금 뒤에 다시 쏠 수 있어요');
+      if (res.status === 429) setError(data.error ?? '잠깐! 조금 뒤에 다시 보낼 수 있어요');
       else if (res.status === 400) setError(data.error ?? '내용을 다시 확인해주세요');
       else setError('전송에 실패했어요. 잠시 뒤 다시 시도해주세요');
       return;
@@ -186,6 +186,19 @@ export default function WriteApp() {
             <p className="gw-lead">{p.team} · {p.desc}</p>
           </div>
 
+          {/* 작품 소개 */}
+          <details className="gw-about" open>
+            <summary>
+              <span className="gw-small">About this work</span>
+              <span className="gw-small is-mute" aria-hidden>접기 / 펼치기</span>
+            </summary>
+            <p className="gw-about-txt">{p.intro}</p>
+            <div className="gw-about-meta">
+              <span>{p.members.join(' · ')}</span>
+              <span className="gw-tags">{p.tags.map((t) => <em key={t}>{t}</em>)}</span>
+            </div>
+          </details>
+
           {/* 큰 화면에 날아갈 카드 미리보기 */}
           <div className="gw-preview-wrap">
             <div className={`gw-preview${phase === 'launch' ? ' is-launch' : ''}`} aria-hidden>
@@ -233,7 +246,7 @@ export default function WriteApp() {
             </label>
             <div className="gw-err" role="alert" aria-live="assertive">{error}</div>
             <button type="submit" className="gw-fire" disabled={!canSend}>
-              <span>{busy ? '쏘는 중…' : '발사'}</span>
+              <span>{busy ? '보내는 중…' : '보내기'}</span>
               <i aria-hidden>↑</i>
             </button>
             {len > 0 && len < 2 && <p className="gw-hint">두 글자 이상 써주세요</p>}
@@ -241,7 +254,7 @@ export default function WriteApp() {
         </section>
       )}
 
-      {/* ---------- 발사 연출 ---------- */}
+      {/* ---------- 보내기 연출 ---------- */}
       {phase === 'launch' && (
         <div className="gw-launch" aria-live="polite">
           <div className="gw-launch-lines" aria-hidden>
@@ -253,8 +266,8 @@ export default function WriteApp() {
             <span className="gw-print-top"><span>№{pad2(IDX[project])} · {nameOf(project)}</span><span>Sending</span></span>
             <span className="gw-preview-txt">{lastText}</span>
           </div>
-          <p className="gw-launch-big" aria-hidden>발사!</p>
-          <p className="gw-launch-label">→ {nameOf(project)}로 전송 중</p>
+          <p className="gw-launch-big" aria-hidden>보내는 중</p>
+          <p className="gw-launch-label">→ {nameOf(project)}에게 가는 중</p>
         </div>
       )}
 
@@ -262,12 +275,8 @@ export default function WriteApp() {
       {phase === 'done' && (
         <section className="gw-done">
           <p className="gw-small is-mute">Sent → №{pad2(IDX[project])} {nameOf(project)}</p>
-          <h1>
-            큰 화면을
-            <br />
-            보세요!
-          </h1>
-          <p className="gw-lead">방금 쓴 메시지가 전시장 화면의 {nameOf(project)} 쪽으로 날아가고 있어요.</p>
+          <h1>닿았어요.</h1>
+          <p className="gw-lead">전시장 큰 화면을 보세요. 방금 쓴 메시지가 {nameOf(project)} 곁에 내려앉고 있어요.</p>
           <blockquote className="gw-sent-card">
             <span>“{lastText}”</span>
             <em>— {nick.trim() || '익명의 방문자'}</em>
@@ -288,7 +297,7 @@ export default function WriteApp() {
           {!newLinks.length && sent.length < 2 && <p className="gw-tip">다른 작품에도 보내면 두 작품이 선으로 이어져요.</p>}
           <div className="gw-actions">
             <button type="button" className="gw-fire" onClick={again}>
-              <span>다른 프로젝트에도 쏘기</span>
+              <span>다른 작품에도 보내기</span>
               <i aria-hidden>→</i>
             </button>
             <button type="button" className="gw-ghost" onClick={() => setPhase('write')}>

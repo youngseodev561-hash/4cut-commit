@@ -87,7 +87,7 @@ export async function addEntry(input: { project?: string; text?: string; nick?: 
   const last = await getJSON<number>(rlKey);
   if (last && Date.now() - last < RATE_MS) {
     const sec = Math.ceil((RATE_MS - (Date.now() - last)) / 1000);
-    throw new GuestbookError(`잠깐! ${sec}초 뒤에 다시 쏠 수 있어요`, 429);
+    throw new GuestbookError(`잠깐! ${sec}초 뒤에 다시 보낼 수 있어요`, 429);
   }
   await setJSON(rlKey, Date.now(), 10);
 

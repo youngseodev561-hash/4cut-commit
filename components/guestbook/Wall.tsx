@@ -110,9 +110,27 @@ export default function Wall({ demo = false, initialMode = 'table', cycle = true
   const [closing, setClosing] = useState(false);
   const [grabbing, setGrabbing] = useState(false);
   const [reduced, setReduced] = useState(false);
+  const [spot, setSpot] = useState(''); // 자동으로 돌아가며 소개하는 작품
 
   const hoverCard = cards.find((c) => c.e.id === hover);
   const activeLabel = hoverLabel || lockLabel || (hoverCard ? hoverCard.e.project : '');
+  const aboutId = hoverLabel || lockLabel || (heroId ? '' : spot);
+  const about = aboutId ? projOf(aboutId) : undefined;
+
+  // 아무도 안 만질 때 18초마다 작품 하나씩 8초간 소개
+  useEffect(() => {
+    let i = 0;
+    let hide: ReturnType<typeof setTimeout>;
+    const t = setInterval(() => {
+      setSpot(PROJECTS[i % PROJECTS.length].id);
+      i++;
+      hide = setTimeout(() => setSpot(''), 8000);
+    }, 18000);
+    return () => {
+      clearInterval(t);
+      clearTimeout(hide);
+    };
+  }, []);
 
   const S = useRef({
     x: 0, y: 0, vx: 0, vy: 0, px: 0, py: 0, tilt: 0, press: 0, scale: 1,
@@ -775,7 +793,7 @@ export default function Wall({ demo = false, initialMode = 'table', cycle = true
             <p className="gb-empty">
               아직 테이블이 비어 있어요.
               <br />
-              QR을 찍고 첫 번째 메시지를 쏘아주세요.
+              QR을 찍고 첫 번째 메시지를 보내주세요.
             </p>
           )}
         </div>
@@ -807,7 +825,7 @@ export default function Wall({ demo = false, initialMode = 'table', cycle = true
           <button
             key={l.id}
             type="button"
-            className={`gb-cat${hit?.id === l.id ? ' is-hit' : ''}${activeLabel === l.id ? ' is-on' : ''}`}
+            className={`gb-cat${hit?.id === l.id ? ' is-hit' : ''}${activeLabel === l.id || aboutId === l.id ? ' is-on' : ''}`}
             style={{ left: l.x - 4, top: l.y }}
             aria-pressed={lockLabel === l.id}
             onPointerEnter={() => setHoverLabel(l.id)}
@@ -827,6 +845,19 @@ export default function Wall({ demo = false, initialMode = 'table', cycle = true
         {/* ---------- 지구본 ---------- */}
         <GlobeView width={W} height={H} scale={scale} active={mode === 'globe'} reduced={reduced} data={shared} apiRef={globeApi} />
 
+        {/* ---------- 작품 소개 ---------- */}
+        <aside className={`gb-about${about && mode === 'table' ? ' on' : ''}`} aria-live="polite">
+          {about && (
+            <div key={about.id}>
+              <p className="gb-small is-mute">About · №{pad2(IDX[about.id] ?? 0)} · {about.team}</p>
+              <p className="gb-about-name">{about.name}</p>
+              <p className="gb-about-txt">{about.intro}</p>
+              <p className="gb-about-tags">{about.tags.map((t) => <em key={t}>{t}</em>)}</p>
+              <p className="gb-small is-mute">{about.members.join(' · ')} · ♡ {counts[about.id] ?? 0}</p>
+            </div>
+          )}
+        </aside>
+
         {/* ---------- QR ---------- */}
         <aside className="gb-qr">
           <div className="gb-qr-img">
@@ -834,7 +865,7 @@ export default function Wall({ demo = false, initialMode = 'table', cycle = true
             {qr && <img src={qr} alt="방명록 쓰기 QR 코드" />}
           </div>
           <p className="gb-small">Scan to write</p>
-          <p className="gb-qr-title">폰으로 찍고<br />메시지 쏘기</p>
+          <p className="gb-qr-title">폰으로 찍고<br />메시지 보내기</p>
           <p className="gb-small is-mute">{joinUrl}</p>
         </aside>
 

@@ -96,7 +96,7 @@ html:has(.gw), body:has(.gw) { background: #ffffff; }
 .gw-ghost { min-height: 52px; width: 100%; border: 1px solid var(--ink); background: none; font-size: 16px !important; font-weight: 500; cursor: pointer; }
 .gw-ghost:active { background: rgb(10 10 10 / 0.06); }
 
-/* 발사 연출 */
+/* 보내기 연출 */
 .gw-launch { position: fixed !important; inset: 0; z-index: 50 !important; overflow: hidden; display: grid; place-items: center; background: var(--bg); animation: gw-bg 1.9s linear forwards; }
 .gw-launch-card { position: absolute; left: 50%; top: 50%; width: min(78vw, 400px); min-height: 190px; display: flex; flex-direction: column; padding: 16px 18px; translate: -50% -50%;
   background: var(--paper); color: var(--ink); box-shadow: 0 40px 60px -30px rgb(0 0 0 / 0.39); animation: gw-fly 1.15s cubic-bezier(0.6, -0.05, 0.75, 0.2) forwards; }
@@ -161,3 +161,12 @@ html:has(.gw), body:has(.gw) { background: #ffffff; }
 .ga-meta { margin-top: 4px; font-family: var(--mono); font-size: 11px; letter-spacing: 0.08em; color: var(--mute); }
 .ga-toggle { min-width: 84px; min-height: 44px; border: 1px solid var(--ink); background: none; font-weight: 500; cursor: pointer; }
 .ga-row.is-hidden .ga-toggle { background: var(--ink); color: var(--paper) !important; }
+
+/* 작품 소개 */
+.gw-about { margin: 6px 0 22px; border-top: 1px solid var(--line); border-bottom: 1px solid var(--line); padding: 14px 0 16px; }
+.gw-about summary { display: flex; justify-content: space-between; align-items: center; min-height: 32px; cursor: pointer; list-style: none; }
+.gw-about summary::-webkit-details-marker { display: none; }
+.gw-about-txt { margin: 10px 0 12px; font-family: var(--serif); font-size: 15px; line-height: 1.8; word-break: keep-all; }
+.gw-about-meta { display: flex; flex-direction: column; gap: 8px; font-size: 12px; color: var(--mute); }
+.gw-tags { display: flex; flex-wrap: wrap; gap: 6px; }
+.gw-tags em { font-style: normal; font-family: var(--mono); font-size: 10.5px; letter-spacing: 0.08em; padding: 3px 8px; border: 1px solid var(--line); color: var(--ink); }
