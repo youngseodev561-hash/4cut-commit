@@ -52,6 +52,29 @@ export default function ShootScreen({ session, patch, onCancel, onDone }: { sess
   const [log, setLog] = useState<string[]>(['> camera.init()']);
 
   const addLog = (line: string) => setLog((l) => [...l.slice(-9), line]);
+  // 움짤용: 촬영하는 동안 0.1초마다 작은 화면을 계속 담아두고, 셔터 직전 1.2초를 잘라 씀
+  const ringRef = useRef<HTMLCanvasElement[]>([]);
+  const tickRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  function grabSmall(src?: CanvasImageSource & { width?: number; height?: number }): HTMLCanvasElement | null {
+    const v = videoRef.current;
+    const from = src ?? v;
+    const w0 = src ? (src.width as number) : v?.videoWidth;
+    const h0 = src ? (src.height as number) : v?.videoHeight;
+    if (!from || !w0 || !h0) return null;
+    const c = document.createElement('canvas');
+    c.width = 480;
+    c.height = Math.round((480 * h0) / w0);
+    const ctx = c.getContext('2d')!;
+    if (!src) {
+      ctx.translate(c.width, 0);
+      ctx.scale(-1, 1);
+    }
+    ctx.drawImage(from, 0, 0, c.width, c.height);
+    return c;
+  }
+  useEffect(() => () => {
+    if (tickRef.current) clearInterval(tickRef.current);
+  }, []);
 
   const openCamera = useCallback(async () => {
     setPhase('init');
@@ -107,6 +130,14 @@ export default function ShootScreen({ session, patch, onCancel, onDone }: { sess
     setPhase('shooting');
     const taken: Shot[] = [];
     setShots([]);
+    ringRef.current = [];
+    if (!fake)
+      tickRef.current = setInterval(() => {
+        const f = grabSmall();
+        if (!f) return;
+        ringRef.current.push(f);
+        if (ringRef.current.length > 14) ringRef.current.shift();
+      }, 100);
     for (let i = 0; i < TOTAL_SHOTS; i++) {
       addLog(`> capture[${i}] ... ${session.timer}s`);
       for (let s = session.timer; s > 0; s--) {
@@ -119,13 +150,17 @@ export default function ShootScreen({ session, patch, onCancel, onDone }: { sess
       setCount(null);
       shutter();
       const canvas = capture(i + 1);
-      const shot = { canvas, thumb: makeThumb(canvas) };
+      const last = grabSmall(canvas);
+      const clip = ringRef.current.length >= 6 && last ? [...ringRef.current.slice(-11), last] : undefined;
+      const shot: Shot = { canvas, thumb: makeThumb(canvas), clip };
       taken.push(shot);
       setShots([...taken]);
       setFlash((f) => f + 1);
       addLog(`> capture[${i}] ... OK`);
       await sleep(900);
     }
+    if (tickRef.current) clearInterval(tickRef.current);
+    tickRef.current = null;
     addLog('> exit 0');
     await sleep(400);
     if (aliveRef.current) onDone(taken);

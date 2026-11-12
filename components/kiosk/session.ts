@@ -9,6 +9,8 @@ export const PICK_COUNT = 4;
 export interface Shot {
   canvas: HTMLCanvasElement;
   thumb: string; // 작은 JPEG data URL (목록 표시용)
+  /** 셔터 직전 1.2초 영상 조각 (움짤/영상용, 작은 크기) */
+  clip?: HTMLCanvasElement[];
 }
 
 export interface Session {
@@ -42,6 +44,9 @@ export function newSession(): Session {
     date: todayLabel(),
   };
 }
+
+/** 고른 네 장의 영상 조각 (없으면 null) */
+export const pickedClips = (s: Session) => [0, 1, 2, 3].map((i) => (s.picked[i] !== undefined ? s.shots[s.picked[i]]?.clip ?? null : null));
 
 export function stripOptions(s: Session): StripOptions {
   return {

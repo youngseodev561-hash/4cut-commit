@@ -21,7 +21,17 @@ export interface PhotoMeta {
   frame: string;
   url: string; // 이미지 주소
   downloadUrl: string; // 저장용 주소
+  /** 같이 저장한 PNG · 움짤(GIF) · 영상 */
+  assets?: Partial<Record<AssetKind, { url: string; downloadUrl: string; ext: string }>>;
 }
+
+export type AssetKind = 'png' | 'gif' | 'video';
+export const ASSET_TYPES: Record<string, { kind: AssetKind; ext: string }> = {
+  'image/png': { kind: 'png', ext: 'png' },
+  'image/gif': { kind: 'gif', ext: 'gif' },
+  'video/mp4': { kind: 'video', ext: 'mp4' },
+  'video/webm': { kind: 'video', ext: 'webm' },
+};
 
 function newId() {
   const abc = 'ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz23456789';
@@ -72,6 +82,45 @@ export async function listGallery(limit = 60): Promise<PhotoMeta[]> {
   return metas.filter((m): m is PhotoMeta => !!m && m.gallery).slice(0, limit);
 }
 
+/** 사진에 딸린 파일(PNG·GIF·영상) 저장 */
+export async function saveAsset(id: string, data: Buffer, contentType: string): Promise<PhotoMeta | null> {
+  const meta = await getMeta(id);
+  const t = ASSET_TYPES[contentType];
+  if (!meta || !t) return null;
+  let url: string;
+  let downloadUrl: string;
+  if (usingBlob) {
+    const r = await put(`photos/${id}-${t.kind}.${t.ext}`, data, { access: 'public', contentType, addRandomSuffix: false, allowOverwrite: true });
+    url = r.url;
+    downloadUrl = r.downloadUrl;
+  } else {
+    await fs.mkdir(PHOTO_DIR, { recursive: true });
+    await fs.writeFile(path.join(PHOTO_DIR, `${id}-${t.kind}.${t.ext}`), data);
+    url = `/files/${id}?asset=${t.kind}`;
+    downloadUrl = `/files/${id}?asset=${t.kind}&download`;
+  }
+  // 동시에 여러 개 올라와도 서로 덮어쓰지 않게 최신 정보를 다시 읽어서 합침
+  const latest = (await getMeta(id)) ?? meta;
+  const next: PhotoMeta = { ...latest, assets: { ...latest.assets, [t.kind]: { url, downloadUrl, ext: t.ext } } };
+  const left = Math.max(60, Math.round((Date.parse(meta.createdAt) + retentionDays * 86400_000 - Date.now()) / 1000));
+  await setJSON(`photo:${id}`, next, left);
+  return next;
+}
+
+/** 로컬 모드 전용: 딸린 파일 읽기 */
+export async function readLocalAsset(id: string, kind: string): Promise<{ data: Buffer; type: string; ext: string } | null> {
+  if (!isValidId(id)) return null;
+  for (const [type, t] of Object.entries(ASSET_TYPES)) {
+    if (t.kind !== kind) continue;
+    try {
+      return { data: await fs.readFile(path.join(PHOTO_DIR, `${id}-${t.kind}.${t.ext}`)), type, ext: t.ext };
+    } catch {
+      /* next */
+    }
+  }
+  return null;
+}
+
 /** 로컬 모드 전용: 파일 읽기 */
 export async function readLocalPhoto(id: string): Promise<{ data: Buffer; type: string } | null> {
   if (!isValidId(id)) return null;
@@ -93,6 +142,7 @@ async function cleanupLocal() {
     if (!m || Date.parse(m.createdAt) < cutoff) {
       await fs.rm(path.join(PHOTO_DIR, `${id}.jpg`), { force: true });
       await fs.rm(path.join(PHOTO_DIR, `${id}.png`), { force: true });
+      for (const t of Object.values(ASSET_TYPES)) await fs.rm(path.join(PHOTO_DIR, `${id}-${t.kind}.${t.ext}`), { force: true });
       await del(`photo:${id}`);
       await listRemove('photos', id);
     }

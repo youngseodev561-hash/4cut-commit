@@ -23,11 +23,7 @@ export default async function PhotoPage({ params }: { params: Promise<{ id: stri
           <div className="prompt" style={{ fontSize: 12 }}>&gt; git pull memory</div>
           <h1 className="h1" style={{ fontSize: 28 }}>네컷이 도착했어요</h1>
         </div>
-        <div className="m-photo">
-          {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img src={meta.url} alt="네컷 사진" />
-        </div>
-        <ShareButtons id={id} url={meta.url} downloadUrl={meta.downloadUrl} />
+        <ShareButtons id={id} url={meta.url} downloadUrl={meta.downloadUrl} assets={meta.assets} />
       </main>
       <footer className="m-foot">
         <span>컴퓨터소프트웨어과 졸업작품전</span>

@@ -4,7 +4,8 @@ import { Gear, GearLoader, SnakeLine } from '@/components/brand';
 import { useEffect, useRef, useState } from 'react';
 import QRCode from 'qrcode';
 import { ensureFonts, renderStrip } from '@/lib/strip';
-import { stripOptions, type Session } from './session';
+import { pickedClips, stripOptions, type Session } from './session';
+import { blobToDataUrl, encodeGif, motionFrames, recordVideo } from '@/lib/motion';
 import { TopBar } from './ui';
 
 const AUTO_RESET_SEC = 60;
@@ -19,6 +20,10 @@ export default function ResultScreen({ session, onDone }: { session: Session; on
   const [gallery, setGallery] = useState(false);
   const [left, setLeft] = useState(AUTO_RESET_SEC);
   const started = useRef(false);
+  // 움직이는 네컷 (GIF · 영상)
+  const [motion, setMotion] = useState<{ state: 'idle' | 'making' | 'done' | 'none'; gif?: string; video?: string; videoExt?: string }>({ state: 'idle' });
+  const [showMotion, setShowMotion] = useState(false);
+  const motionStarted = useRef(false);
 
   // 1) 최종 이미지 합성
   useEffect(() => {
@@ -56,6 +61,44 @@ export default function ResultScreen({ session, onDone }: { session: Session; on
     if (jpg) doUpload(jpg);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [jpg]);
+
+  // 3) 사진이 올라가면: PNG + 움짤(GIF) + 영상을 만들어 같이 올림 → 휴대폰에서 받을 수 있게
+  useEffect(() => {
+    if (upload.state !== 'done' || !png || motionStarted.current) return;
+    motionStarted.current = true;
+    const id = upload.id;
+    const push = (data: string) =>
+      data.length < 5_400_000
+        ? fetch(`/api/photos/${id}/assets`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ data }) }).catch(() => undefined)
+        : Promise.resolve(undefined);
+    push(png);
+    (async () => {
+      const clips = pickedClips(session);
+      if (!clips.some((c) => c?.length)) {
+        setMotion({ state: 'none' });
+        return;
+      }
+      setMotion({ state: 'making' });
+      try {
+        const opts = stripOptions(session);
+        const small = motionFrames(opts, clips, 300);
+        const gifBlob = await encodeGif(small);
+        const gif = URL.createObjectURL(gifBlob);
+        setMotion((m) => ({ ...m, state: 'making', gif }));
+        setShowMotion(true);
+        push(await blobToDataUrl(gifBlob));
+        const vid = await recordVideo(motionFrames(opts, clips, 600));
+        if (vid) {
+          setMotion({ state: 'done', gif, video: URL.createObjectURL(vid.blob), videoExt: vid.ext });
+          push(await blobToDataUrl(vid.blob));
+        } else setMotion({ state: 'done', gif });
+      } catch (e) {
+        console.error(e);
+        setMotion({ state: 'none' });
+      }
+    })();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [upload, png]);
 
   // 갤러리 동의 변경
   async function toggleGallery(v: boolean) {
@@ -96,7 +139,13 @@ export default function ResultScreen({ session, onDone }: { session: Session; on
         <section className="result-left">
           <SnakeLine className="result-snake" />
           {/* eslint-disable-next-line @next/next/no-img-element */}
-          {png ? <img src={png} alt="완성된 네컷 사진" /> : <GearLoader label="building..." className="on-dark" />}
+          {png ? <img src={showMotion && motion.gif ? motion.gif : png} alt="완성된 네컷 사진" /> : <GearLoader label="building..." className="on-dark" />}
+          {motion.gif && (
+            <div className="motion-toggle" role="group" aria-label="사진 / 움직이는 네컷">
+              <button className={!showMotion ? 'on' : ''} aria-pressed={!showMotion} onClick={() => setShowMotion(false)}>사진</button>
+              <button className={showMotion ? 'on' : ''} aria-pressed={showMotion} onClick={() => setShowMotion(true)}>움짤</button>
+            </div>
+          )}
         </section>
 
         <section className="pad result-right" style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: 32, padding: '40px 56px' }}>
@@ -148,10 +197,20 @@ export default function ResultScreen({ session, onDone }: { session: Session; on
                     <button className="btn" style={{ minHeight: 48 }} onClick={() => jpg && doUpload(jpg)}>다시 시도</button>
                   </>
                 ) : (
-                  <div style={{ fontSize: 17, lineHeight: 1.5 }}>휴대폰 카메라로 찍으면 원본 사진을 받을 수 있어요.</div>
+                  <div style={{ fontSize: 17, lineHeight: 1.5 }}>휴대폰 카메라로 찍으면 사진(JPG·PNG)과 움짤·영상을 받을 수 있어요.</div>
                 )}
+                {motion.state === 'making' && <span className="mono muted" style={{ fontSize: 13 }}>움짤·영상 만드는 중...</span>}
               </div>
             </div>
+          </div>
+
+          <div className="save-row" aria-label="이 기기에 저장">
+            <span className="mono muted">SAVE HERE</span>
+            <a className={`btn${png ? '' : ' is-disabled'}`} href={png ?? undefined} download={`4cut-${session.hash}.png`}>PNG</a>
+            <a className={`btn${motion.gif ? '' : ' is-disabled'}`} href={motion.gif} download={`4cut-${session.hash}.gif`}>움짤 GIF</a>
+            <a className={`btn${motion.video ? '' : ' is-disabled'}`} href={motion.video} download={`4cut-${session.hash}.${motion.videoExt ?? 'webm'}`}>
+              영상 {motion.videoExt ? motion.videoExt.toUpperCase() : ''}
+            </a>
           </div>
 
           <label className="check" style={{ fontSize: 17 }}>
