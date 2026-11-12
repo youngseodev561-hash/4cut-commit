@@ -54,7 +54,7 @@ export default function DecorateScreen({ session, patch, onBack, onNext }: { ses
   const [live, setLive] = useState<Stroke | null>(null);
   const stageRef = useRef<HTMLDivElement>(null);
   const viewRef = useRef<HTMLDivElement>(null);
-  const [big, setBig] = useState(false);
+  const [big, setBig] = useState(true); // 넓어진 꾸미기 영역을 꽉 채우도록 처음부터 크게
   const [cut, setCut] = useState(0);
   const drag = useRef<{ id: string; px: number; py: number; x: number; y: number } | null>(null);
   const drawing = useRef<Stroke | null>(null);
